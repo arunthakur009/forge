@@ -120,7 +120,7 @@ viewPageAppRuntimes _ pageApp =
             (listAppRuntimeAvailable pageApp.pageApp_app
                 |> List.map
                     (\r ->
-                        span [ class "badge bg-secondary me-1" ]
+                        span [ class "badge bg-primary me-1", style "font-size" "0.85em" ]
                             [ text (showAppRuntime r |> String.toLower) ]
                     )
             )
