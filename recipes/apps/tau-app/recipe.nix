@@ -75,12 +75,13 @@
         packages = [
           pkgs.mypkgs.tau-tower
         ];
-        vm.forwardPorts = [
-          "3001:3001"
-          "3002:3002"
-        ];
       };
     };
+
+    ports = [
+      "3001:3001"
+      "3002:3002"
+    ];
   };
 
   test.script = ''

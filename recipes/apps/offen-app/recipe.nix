@@ -73,11 +73,10 @@
         packages = [
           pkgs.mypkgs.offen # required for admin tasks
         ];
-        vm.forwardPorts = [
-          "3000:3000"
-        ];
       };
     };
+
+    ports = [ "3000:3000" ];
   };
 
   test.script = ''
