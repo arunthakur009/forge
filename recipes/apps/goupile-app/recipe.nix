@@ -1,12 +1,10 @@
 {
-  config,
-  lib,
   pkgs,
   ...
 }:
 
 {
-  name = "goupile-app";
+apps.goupile = {
   displayName = "Goupile";
   description = "Free design tool for secure forms including Clinical Report Forms (eCRF).";
   usage = ''
@@ -64,4 +62,5 @@
       $curl --location localhost:8181 | grep -q "Goupile" >/dev/null
     '';
   };
+};
 }

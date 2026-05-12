@@ -1,12 +1,10 @@
 {
-  config,
-  lib,
   pkgs,
   ...
 }:
 
 {
-  name = "python-web-app";
+apps.python-web = {
   displayName = "Python Web Example";
   description = "Example web API with database backend.";
   usage = ''
@@ -37,9 +35,9 @@
   '';
 
   links = {
-    website = pkgs.mypkgs.python-web.meta.homepage;
-    docs = pkgs.mypkgs.python-web.meta.homepage;
-    source = pkgs.mypkgs.python-web.meta.homepage;
+    website = pkgs.python-web.meta.homepage;
+    docs = pkgs.python-web.meta.homepage;
+    source = pkgs.python-web.meta.homepage;
   };
 
   ngi.grants = {
@@ -56,7 +54,7 @@
   services = {
     components = {
       python-web = {
-        command = pkgs.mypkgs.python-web;
+        command = pkgs.python-web;
         ports = [ "5000:5000" ];
       };
     };
@@ -65,7 +63,7 @@
       container = {
         enable = true;
         composeFile = ./compose.yaml;
-        components.python-web.packages = [ pkgs.mypkgs.python-web ];
+        components.python-web.packages = [ pkgs.python-web ];
       };
 
       nixos = {
@@ -100,4 +98,5 @@
     # test-container requires database image from Internet registry
     sandbox = false;
   };
+};
 }

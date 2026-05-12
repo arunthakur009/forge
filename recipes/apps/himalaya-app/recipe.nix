@@ -1,12 +1,10 @@
 {
-  config,
   pkgs,
-  lib,
   ...
 }:
 
 {
-  name = "himalaya-app";
+apps.himalaya = {
   displayName = "Himalaya";
   description = "Command-line email client supporting IMAP, Maildir, and SMTP.";
   usage = ''
@@ -62,11 +60,12 @@
 
   programs = {
     packages = [
-      pkgs.mypkgs.himalaya
+      pkgs.himalaya
     ];
 
     runtimes.shell = {
       enable = true;
     };
   };
+};
 }

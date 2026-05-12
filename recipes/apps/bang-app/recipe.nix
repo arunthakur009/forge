@@ -1,12 +1,10 @@
 {
-  config,
   pkgs,
-  lib,
   ...
 }:
 
 {
-  name = "bang-app";
+apps.bang = {
   displayName = "BANG";
   description = "Binary Analysis Next Generation framework for recursive unpacking and analysis of binary files.";
   usage = ''
@@ -35,10 +33,11 @@
 
   programs = {
     packages = [
-      pkgs.mypkgs.bang
+      pkgs.bang
     ];
     runtimes.shell = {
       enable = true;
     };
   };
+};
 }

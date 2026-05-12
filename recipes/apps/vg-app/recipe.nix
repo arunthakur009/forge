@@ -1,12 +1,10 @@
 {
-  config,
   pkgs,
-  lib,
   ...
 }:
 
 {
-  name = "vg-app";
+apps.vg = {
   displayName = "Variation Graphs";
   description = "Tools for working with genome variation graphs.";
   usage = ''
@@ -52,11 +50,12 @@
 
   programs = {
     packages = with pkgs; [
-      mypkgs.vg
+      vg
     ];
 
     runtimes.shell = {
       enable = true;
     };
   };
+};
 }

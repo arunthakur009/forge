@@ -1,12 +1,10 @@
 {
-  config,
-  lib,
   pkgs,
   ...
 }:
 
 {
-  name = "offen-app";
+apps.offen = {
   displayName = "Offen";
   description = "Fair and privacy-focused web analytics.";
   usage = ''
@@ -48,7 +46,7 @@
       preStart = ''
         mkdir --parents --verbose /var/lib/offen
       '';
-      command = pkgs.mypkgs.offen;
+      command = pkgs.offen;
       argv = [ "serve" ];
       environment = {
         OFFEN_SERVER_PORT = "3000";
@@ -64,14 +62,14 @@
         components.offen.packages = [
           pkgs.bash # required for entering the container
           pkgs.coreutils # required for mkdir
-          pkgs.mypkgs.offen # required for admin tasks
+          pkgs.offen # required for admin tasks
         ];
       };
 
       nixos = {
         enable = true;
         packages = [
-          pkgs.mypkgs.offen # required for admin tasks
+          pkgs.offen # required for admin tasks
         ];
       };
     };
@@ -84,4 +82,5 @@
     offen setup -name test -email test@localhost -password test123456
     $curl localhost:3000 | grep "Offen Fair Web Analytics"
   '';
+};
 }

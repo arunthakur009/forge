@@ -1,12 +1,11 @@
 {
-  config,
   pkgs,
-  lib,
+  apps,
   ...
 }:
 
 {
-  name = "qlever-app";
+apps.qlever = {
   displayName = "QLever";
   description = "Web-based user interface for QLever SPARQL engine.";
   usage = ''
@@ -36,7 +35,7 @@
 
   services = {
     components.qlever-ui = {
-      command = pkgs.mypkgs.qlever-ui;
+      command = pkgs.qlever-ui;
       argv = [
         "--bind=0.0.0.0:8080"
       ];
@@ -57,7 +56,7 @@
 
     components.qlever-server = {
       configData."service-data" = {
-        source = "${pkgs.mypkgs.qlever-olympics-rdf-data}/olympics.nt";
+        source = "${pkgs.qlever-olympics-rdf-data}/olympics.nt";
         path = "olympics.nt";
       };
       preStart = ''
@@ -70,7 +69,7 @@
         install -D ''$XDG_CONFIG_HOME/olympics.nt "$WORKDIR"/olympics.nt
         qlever index --overwrite-existing
       '';
-      command = pkgs.mypkgs.qlever-control;
+      command = pkgs.qlever-control;
       argv = [
         "--qleverfile"
         "/var/lib/qlever-server/Qleverfile"
@@ -87,7 +86,7 @@
         enable = true;
         components.qlever-ui = {
           packages = with pkgs; [
-            mypkgs.qlever-ui
+            qlever-ui
             rsync
             subversion
           ];
@@ -101,10 +100,10 @@
 
               # only copy db on first run so we don't overwrite it
               if [ ! -d "$WORKDIR/db" ]; then
-                rsync -a --chmod=u=rwX,g=rwX,o=rX ${pkgs.mypkgs.qlever-ui}/opt/db "$WORKDIR"
+                rsync -a --chmod=u=rwX,g=rwX,o=rX ${pkgs.qlever-ui}/opt/db "$WORKDIR"
               fi
 
-              rsync -a --chmod=u=rwX,go=rX --exclude='/db/' ${pkgs.mypkgs.qlever-ui}/opt/ "$WORKDIR"
+              rsync -a --chmod=u=rwX,go=rX --exclude='/db/' ${pkgs.qlever-ui}/opt/ "$WORKDIR"
             '';
         };
         components.qlever-server = {
@@ -112,8 +111,8 @@
             bash
             coreutils
             curl
-            mypkgs.qlever
-            mypkgs.qlever-control
+            qlever
+            qlever-control
           ];
           imageConfig = {
             WorkingDir = "/var/lib/qlever-server";
@@ -123,9 +122,9 @@
 
       nixos = {
         enable = true;
-        setup = config.services.runtimes.container.components.qlever-ui.setup;
+        setup = apps.qlever.services.runtimes.container.components.qlever-ui.setup;
         nixosConfig = {
-          systemd.services."qlever-app-setup" = {
+          systemd.services."qlever-setup" = {
             path = with pkgs; [
               rsync
             ];
@@ -138,7 +137,7 @@
 
           systemd.services."qlever-ui" = {
             path = with pkgs; [
-              mypkgs.qlever-ui
+              qlever-ui
               subversion
             ];
             serviceConfig = {
@@ -151,8 +150,8 @@
           systemd.services."qlever-server" = {
             path = with pkgs; [
               curl
-              mypkgs.qlever
-              mypkgs.qlever-control
+              qlever
+              qlever-control
               unzip
             ];
             serviceConfig = {
@@ -185,4 +184,5 @@
       test "$(printf '%s\n' "$result" | wc -l)" -eq 11
     '';
   };
+};
 }

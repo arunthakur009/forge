@@ -1,12 +1,11 @@
 {
-  config,
   lib,
   pkgs,
   ...
 }:
 
 {
-  name = "ironcalc-app";
+apps.ironcalc = {
   displayName = "IronCalc";
   description = "Open source selfhosted spreadsheet engine.";
 
@@ -39,7 +38,7 @@
 
   services = {
     components.ironcalc = {
-      command = "${pkgs.mypkgs.ironcalc}/bin/ironcalc";
+      command = lib.getExe pkgs.ironcalc;
       environment = {
         ROCKET_ADDRESS = "0.0.0.0";
         IRONCALC_DB_PATH = "/var/lib/ironcalc/ironcalc.sqlite";
@@ -50,12 +49,12 @@
     runtimes.container = {
       enable = true;
       composeFile = ./compose.yaml;
-      components.ironcalc.packages = [ pkgs.mypkgs.ironcalc ];
+      components.ironcalc.packages = [ pkgs.ironcalc ];
     };
 
     runtimes.nixos = {
       enable = true;
-      packages = [ pkgs.mypkgs.ironcalc ];
+      packages = [ pkgs.ironcalc ];
     };
   };
 
@@ -64,4 +63,5 @@
     curl="curl --retry 8 --retry-max-time 120 --retry-all-errors"
     $curl localhost:8000 | grep -q "IronCalc"
   '';
+};
 }

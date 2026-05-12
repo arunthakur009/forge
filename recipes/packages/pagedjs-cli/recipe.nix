@@ -1,12 +1,11 @@
 {
-  config,
   pkgs,
   lib,
   ...
 }:
 
 {
-  name = "pagedjs-cli";
+packages.pagedjs-cli = {
   version = "0-main-2026-01-05";
   description = "Command line interface for Pagedjs PDF renderer.";
   homePage = "https://pagedjs.org";
@@ -51,4 +50,5 @@
   test.script = ''
     pagedjs-cli --help | grep -q "Usage:"
   '';
+};
 }

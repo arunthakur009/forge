@@ -1,12 +1,11 @@
 {
-  config,
   pkgs,
   lib,
   ...
 }:
 
-{
-  name = "tau-radio";
+{ 
+packages.tau-radio = {
   version = "0.2.101-unstable-2025-12-17";
   description = "Web radio - Hijacks audio device using CLAP and Ogg/Opus.";
   homePage = "https://github.com/tau-org/tau-radio";
@@ -49,4 +48,5 @@
   test.script = ''
     tau-radio --version
   '';
+};
 }

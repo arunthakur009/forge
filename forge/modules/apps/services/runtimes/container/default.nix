@@ -1,10 +1,12 @@
 {
+  inputs,
   config,
   lib,
+  system,
 
-  nimi,
   app,
   pkgs,
+  specialArgs,
   ...
 }@args:
 {
@@ -23,7 +25,10 @@
 
     components = lib.mkOption {
       type = lib.types.attrsOf (
-        lib.types.submodule {
+        lib.types.submoduleWith {
+          inherit specialArgs;
+          modules = [
+            {
           options = {
             setup = lib.mkOption {
               type = lib.types.lines;
@@ -62,6 +67,8 @@
               '';
             };
           };
+            }
+          ];
         }
       );
       default = { };
@@ -132,11 +139,11 @@
     }) app.services.components;
 
     result.evals = lib.mapAttrs (
-      name: value: nimi.passthru.evalNimiModule { config = config.result.modules.${name}; }
+      name: value: inputs.ngi-forge.inputs.nimi.packages.${system}.nimi.passthru.evalNimiModule { config = config.result.modules.${name}; }
     ) app.services.components;
 
     result.recipes = lib.mapAttrs (
-      name: value: nimi.mkContainerImage { config = config.result.modules.${name}; }
+      name: value: inputs.ngi-forge.inputs.nimi.packages.${system}.nimi.mkContainerImage { config = config.result.modules.${name}; }
     ) app.services.components;
 
     result.build =

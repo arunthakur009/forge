@@ -1,21 +1,9 @@
-{
-  inputs,
-  config,
-  lib,
-  flake-parts-lib,
-  ...
-}:
+{ inputs, lib, pkgs, ... }:
+      {
+        config = {
+          # Pass shared build attributes to other modules via _module.args
+          _module.args.sharedBuildAttrs = {
 
-let
-  inherit (flake-parts-lib) mkPerSystemOption;
-in
-{
-  options = {
-    perSystem = mkPerSystemOption (
-      { config, pkgs, ... }:
-      let
-        # Define shared build attributes here so they can be passed via _module.args
-        sharedBuildAttrs = {
           pkgSource =
             let
               fetchers = {
@@ -118,7 +106,7 @@ in
 
           pkgPassthru = pkg: finalPkg: {
             test = pkgs.testers.runCommand {
-              name = "${pkg.name}-test";
+              name = "${pkg.pname}-test";
               buildInputs = [ finalPkg ] ++ pkg.test.packages;
               script = pkg.test.script + "\ntouch $out";
             };
@@ -126,7 +114,7 @@ in
               dontBuild = true;
               phases = [ "installPhase" ];
               installPhase = "touch $out";
-              env.DEVENV_PACKAGE_NAME = "${pkg.name}";
+              env.DEVENV_PACKAGE_NAME = "${pkg.pname}";
               env.DEVENV_PACKAGE_SOURCE = "${finalPkg.src}";
               inputsFrom = [
                 finalPkg
@@ -144,20 +132,8 @@ in
           };
 
           debugShellHookAttr = {
-            shellHook = "source ${inputs.nix-utils}/nix-develop-interactive.bash";
+            shellHook = "source ${inputs.ngi-forge.inputs.nix-utils}/nix-develop-interactive.bash";
           };
         };
-      in
-      {
-        options = {
-          # No options needed
-        };
-
-        config = {
-          # Pass shared build attributes to other modules via _module.args
-          _module.args.sharedBuildAttrs = sharedBuildAttrs;
         };
       }
-    );
-  };
-}

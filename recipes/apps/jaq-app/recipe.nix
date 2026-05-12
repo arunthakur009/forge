@@ -1,12 +1,10 @@
 {
-  config,
   pkgs,
-  lib,
   ...
 }:
 
 {
-  name = "jaq-app";
+apps.jaq = {
   displayName = "jaq";
   description = "Data wrangling tool focusing on correctness, speed, and simplicity.";
   usage = ''
@@ -64,4 +62,5 @@
       enable = true;
     };
   };
+};
 }

@@ -1,12 +1,11 @@
 {
-  config,
   pkgs,
   lib,
   ...
 }:
 
 {
-  name = "qlever-olympics-rdf-data";
+packages.qlever-olympics-rdf-data = {
   version = "0-master-2023-01-01";
   description = "Olympics RDF dataset for use with QLever SPARQL engine.";
   homePage = "https://github.com/wallscope/olympics-rdf";
@@ -32,4 +31,5 @@
       install -D olympics.nt -t $out
     '';
   };
+};
 }

@@ -1,7 +1,7 @@
 {
-  config,
-  pkgs,
   lib,
+  pkgs,
+  packages,
   ...
 }:
 
@@ -10,7 +10,7 @@ let
 in
 
 {
-  name = "vg";
+packages.vg = {
   version = "1.74.0";
   description = "Tools for working with genome variation graphs.";
   homePage = "https://github.com/vgteam/vg";
@@ -18,7 +18,7 @@ in
   license = lib.licenses.mit;
 
   source = {
-    git = "github:vgteam/vg/v${config.version}";
+    git = "github:vgteam/vg/v${packages.vg.version}";
     hash = "sha256-22Q7CZ4GncCaiuJHZk9vUlVf+0Q4Mrf+esD70OLNk3I=";
     submodules = true;
   };
@@ -67,7 +67,7 @@ in
     strictDeps = true;
 
     # needed, else build fails
-    env.VG_GIT_VERSION = config.version;
+    env.VG_GIT_VERSION = packages.vg.version;
 
     # deps/elfutils
     NIX_CFLAGS_COMPILE = toString [
@@ -143,8 +143,9 @@ in
   test.script = ''
     # build graph
     vg construct \
-      -r ${pkgs.mypkgs.vg.src}/test/tiny/tiny.fa \
-      -v ${pkgs.mypkgs.vg.src}/test/tiny/tiny.vcf.gz \
+      -r ${pkgs.vg.src}/test/tiny/tiny.fa \
+      -v ${pkgs.vg.src}/test/tiny/tiny.vcf.gz \
       >x.vg
   '';
+};
 }

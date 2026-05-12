@@ -1,12 +1,11 @@
 {
-  config,
   lib,
   pkgs,
   ...
 }:
 
 {
-  name = "ironcalc";
+packages.ironcalc = {
   version = "0.7.1-unstable-2026-04-29";
   description = "Open source selfhosted spreadsheet engine.";
   homePage = "https://www.ironcalc.com";
@@ -39,7 +38,7 @@
         lib.makeBinPath [
           pkgs.coreutils
           pkgs.sqlite
-          pkgs.mypkgs.ironcalc-server
+          pkgs.ironcalc-server
         ]
       }
 
@@ -48,16 +47,17 @@
 
       if [ ! -f "\$IRONCALC_DB_PATH" ]; then
         echo "Initializing database..."
-        sqlite3 "\$IRONCALC_DB_PATH" < "${pkgs.mypkgs.ironcalc-server}/share/ironcalc/init_db.sql"
+        sqlite3 "\$IRONCALC_DB_PATH" < "${pkgs.ironcalc-server}/share/ironcalc/init_db.sql"
       fi
 
       export ROCKET_DATABASES="{ironcalc={url=\"\$IRONCALC_DB_PATH\"}}"
-      export IRONCALC_WEBAPP_DIR="\''${IRONCALC_WEBAPP_DIR:-${pkgs.mypkgs.ironcalc-frontend}}"
+      export IRONCALC_WEBAPP_DIR="\''${IRONCALC_WEBAPP_DIR:-${pkgs.ironcalc-frontend}}"
       exec ironcalc_server "\$@"
       EOF
       chmod +x $out/bin/ironcalc
 
-      ln -s ${pkgs.mypkgs.ironcalc-tools}/bin/xlsx_2_icalc $out/bin/xlsx_2_icalc
+      ln -s ${pkgs.ironcalc-tools}/bin/xlsx_2_icalc $out/bin/xlsx_2_icalc
     '';
   };
+};
 }

@@ -1,21 +1,20 @@
 {
-  config,
-  lib,
   pkgs,
   ...
 }:
 
 {
-  name = "hello-app";
+apps.hello-nix = {
   description = "Say hello to Nix.";
 
   programs = {
     packages = [
-      pkgs.mypkgs.hello-nix
+      pkgs.hello-nix
     ];
 
     runtimes.shell = {
       enable = true;
     };
   };
+};
 }

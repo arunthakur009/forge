@@ -1,12 +1,10 @@
 {
-  config,
   pkgs,
-  lib,
   ...
 }:
 
 {
-  name = "weasyprint-app";
+apps.weasyprint = {
   displayName = "WeasyPrint";
   description = "Print rendering engine for HTML and CSS.";
   usage = ''
@@ -62,4 +60,5 @@
       file /tmp/output.pdf | grep -q "PDF"
     '';
   };
+};
 }

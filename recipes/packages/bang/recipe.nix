@@ -1,10 +1,8 @@
 {
-  config,
   lib,
   pkgs,
   ...
 }:
-
 let
   # pyahocorasick must be compiled in bytes mode for bang to work
   pyahocorasick-bytes = pkgs.python3Packages.pyahocorasick.overridePythonAttrs (old: {
@@ -13,9 +11,8 @@ let
     };
   });
 in
-
 {
-  name = "bang";
+packages.bang = {
   version = "0-master-2026-04-14";
   description = "Binary Analysis Next Generation framework for recursive unpacking and analysis of binary files.";
   homePage = "https://github.com/armijnhemel/binaryanalysis-ng";
@@ -98,4 +95,5 @@ in
     echo "Test data" > test-file.txt
     bang scan -v -u bang-results ./test-file.txt
   '';
+};
 }

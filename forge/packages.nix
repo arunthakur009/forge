@@ -1,25 +1,18 @@
-{ inputs, flake-parts-lib, ... }:
-
-{
-  perSystem =
     {
       config,
       lib,
       pkgs,
+      flakeInputs,
       ...
     }:
 
     let
-      forgeModules = [
-        ./modules/apps
-        ./modules/packages.nix
-      ];
-
+      inputs = flakeInputs;
       evalForgeModules =
         modules:
         lib.evalModules {
           modules = modules;
-          specialArgs = { inherit flake-parts-lib inputs; };
+          specialArgs = { inherit inputs; };
         };
 
       forgeOptionsDoc =
@@ -38,7 +31,9 @@
         };
 
       forgeApps = config.forge.apps;
-      forgeOptions = forgeOptionsDoc forgeModules;
+      forgeOptions = forgeOptionsDoc [
+        inputs.ngi-forge.flakeModules.base
+      ];
 
       # Collect app icons into a derivation
       appIcons = pkgs.runCommand "app-icons" { } ''
@@ -47,7 +42,7 @@
           map (app: ''
             mkdir -p $out/${app.name}
             ${if app.icon or null != null then "cp ${app.icon} $out/${app.name}/icon.svg" else ""}
-          '') forgeApps
+          '') (lib.attrValues forgeApps)
         )}
       '';
     in
@@ -109,10 +104,9 @@
             \`\`\`
 
             Available apps:
-            ${lib.concatMapStringsSep "\n" (app: "- " + app.name) forgeApps}
+            ${lib.concatMapStringsSep "\n" (app: "- " + app.name) (lib.attrValues forgeApps)}
             EOF
           '';
         };
       };
-    };
-}
+    }

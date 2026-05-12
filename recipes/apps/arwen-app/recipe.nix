@@ -1,12 +1,10 @@
 {
-  config,
   pkgs,
-  lib,
   ...
 }:
 
 {
-  name = "arwen-app";
+apps.arwen = {
   displayName = "Arwen";
   description = "Cross-platform patching of shared libraries (ELF and Mach-O).";
   usage = ''
@@ -72,9 +70,9 @@
 
   programs = {
     packages = with pkgs; [
-      mypkgs.arwen
+      arwen
       (python3.withPackages (ps: [
-        mypkgs.py-arwen
+        py-arwen
       ]))
     ];
 
@@ -82,4 +80,5 @@
       enable = true;
     };
   };
+};
 }

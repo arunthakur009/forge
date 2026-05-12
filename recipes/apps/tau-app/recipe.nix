@@ -1,12 +1,10 @@
 {
-  config,
   pkgs,
-  lib,
   ...
 }:
 
 {
-  name = "tau-app";
+apps.tau = {
   displayName = "Tau";
   description = "Web radio streaming system.";
 
@@ -44,7 +42,7 @@
 
   programs = {
     packages = [
-      pkgs.mypkgs.tau-radio
+      pkgs.tau-radio
     ];
     runtimes.shell = {
       enable = true;
@@ -53,7 +51,7 @@
 
   services = {
     components.tau-tower = {
-      command = pkgs.mypkgs.tau-tower;
+      command = pkgs.tau-tower;
       configData."tau/tower.toml" = {
         source = ./config.toml;
         path = "tau/tower.toml";
@@ -68,14 +66,14 @@
       container = {
         enable = true;
         components.tau-tower.packages = [
-          pkgs.mypkgs.tau-tower
+          pkgs.tau-tower
         ];
       };
 
       nixos = {
         enable = true;
         packages = [
-          pkgs.mypkgs.tau-tower
+          pkgs.tau-tower
         ];
       };
     };
@@ -86,4 +84,5 @@
 
     $curl localhost:3002 | grep "Audio Stream"
   '';
+};
 }

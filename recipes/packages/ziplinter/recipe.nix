@@ -1,12 +1,11 @@
 {
-  config,
   lib,
   pkgs,
   ...
 }:
 
 {
-  name = "ziplinter";
+packages.ziplinter = {
   version = "0.1.0";
   description = "ZIP file analyzer that outputs detailed archive metadata as JSON.";
   homePage = "https://github.com/trifectatechfoundation/ziplinter";
@@ -42,4 +41,5 @@
       ziplinter /tmp/test.zip | grep -q '"contents"'
     '';
   };
+};
 }

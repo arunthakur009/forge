@@ -1,23 +1,12 @@
-{
-  inputs,
-  config,
-  lib,
-  flake-parts-lib,
-  ...
-}:
-
-let
-  inherit (flake-parts-lib) mkPerSystemOption;
-in
-{
-  options = {
-    perSystem = mkPerSystemOption (
-      { config, pkgs, ... }:
+{ lib, specialArgs, ... }:
       {
         options = {
           assertions = lib.mkOption {
             type = lib.types.listOf (
-              lib.types.submodule {
+              lib.types.submoduleWith {
+                inherit specialArgs;
+                modules = [
+                  {
                 options = {
                   condition = lib.mkOption {
                     type = lib.types.bool;
@@ -28,6 +17,8 @@ in
                     description = "Error message to show when assertion fails.";
                   };
                 };
+                  }
+                ];
               }
             );
             internal = true;
@@ -51,7 +42,10 @@ in
 
           warnings = lib.mkOption {
             type = lib.types.listOf (
-              lib.types.submodule {
+              lib.types.submoduleWith {
+                inherit specialArgs;
+                modules = [
+                  {
                 options = {
                   condition = lib.mkOption {
                     type = lib.types.bool;
@@ -62,6 +56,8 @@ in
                     description = "Warning message to show.";
                   };
                 };
+              }
+                ];
               }
             );
             internal = true;
@@ -83,9 +79,4 @@ in
             '';
           };
         };
-
-        config = { };
-      }
-    );
-  };
 }

@@ -1,12 +1,10 @@
 {
-  config,
   lib,
-  pkgs,
   ...
 }:
 
 {
-  name = "himalaya";
+packages.himalaya = {
   version = "1.2.0";
   description = "Command-line email client supporting IMAP, Maildir, and SMTP.";
   homePage = "https://pimalaya.org";
@@ -27,4 +25,5 @@
     himalaya --version
     himalaya --help
   '';
+};
 }

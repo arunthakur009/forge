@@ -1,57 +1,32 @@
 {
+  config,
   lib,
-  inputs,
-  flake-parts-lib,
+  pkgs,
   ...
 }:
-
-let
-  inherit (flake-parts-lib)
-    mkPerSystemOption
-    ;
-in
-
 {
-  imports = [
-    ../assertions-warnings.nix
-  ];
-
-  options = {
-    perSystem = mkPerSystemOption (
-      {
-        config,
-        pkgs,
-        nimi,
-        system,
-        ...
-      }:
-      let
-        cfg = config.forge.apps;
-      in
-      {
-        options = {
-          forge = {
-            apps = lib.mkOption {
-              default = [ ];
-              description = "List of applications.";
-              type = lib.types.listOf (
-                lib.types.submoduleWith {
-                  specialArgs = {
-                    inherit
-                      inputs
-                      nimi
-                      system
-                      ;
-                    # Extend pkgs with mypkgs containing all NGI Forge packages
-                    # This allows recipes to reference other packages via mypkgs
-                    pkgs = pkgs.extend (final: prev: { mypkgs = config.packages; });
-                  };
-                  modules = [ ./app.nix ];
-                }
-              );
-            };
+  options.forge = lib.mkOption {
+    type = lib.types.submoduleWith {
+      modules = [
+        ({specialArgs, ...}@forgeArgs: {
+          config = {
+            # Convenient alias to use `apps` instead of `config.apps`
+            _module.args.apps = forgeArgs.config.apps;
           };
-        };
+          options.apps = lib.mkOption {
+            default = { };
+            description = "Applications indexed by their `name`.";
+            type = lib.types.attrsOf (
+              lib.types.submoduleWith {
+                inherit specialArgs;
+                modules = [ ./app.nix ];
+              }
+            );
+          };
+        })
+      ];
+    };
+  };
 
         config =
           let
@@ -72,24 +47,6 @@ in
               app:
               lib.fix (self: {
                 config = app;
-
-                extend =
-                  module:
-                  let
-                    appExtended = app.result.extend module;
-                  in
-                  shellBundle appExtended;
-
-                # This is meant to be used in consumer templates.
-                #
-                # The purpose of it is to only return a recipe module which
-                # consumer forges can compose into proper applications.
-                #
-                # That's why we remove `result`, because it's tied to the
-                # providers' aleady generated applications, which can cause
-                # conflicts.
-                extendRecipe =
-                  module: lib.filterAttrsRecursive (name: _: name != "result") (self.extend module).config;
               })
               // lib.optionalAttrs app.programs.runtimes.program.enable {
                 program = app.programs.mainPackage;
@@ -124,18 +81,12 @@ in
 
             # finalApp parameter is currently not used in this function
             appPassthru = app: finalApp: mkPassthru app;
-
-            allApps = lib.listToAttrs (
-              map (app: {
-                name = "${app.name}";
-                value = shellBundle app;
-              }) cfg
-            );
           in
           {
-            packages = allApps;
+            packages = lib.mapAttrs' (appName: app: {
+              # Insert the -app suffix to create a namespace for applications.
+              name = "${appName}-app";
+              value = shellBundle app;
+            }) config.forge.apps;
           };
-      }
-    );
-  };
 }

@@ -1,13 +1,11 @@
 {
-  config,
-  pkgs,
   lib,
+  pkgs,
   ...
-
 }:
 
 {
-  name = "qlever-control";
+packages.qlever-control = {
   version = "0.5.46";
   description = "Command-line tool for controlling the QLever graph database.";
   license = lib.licenses.asl20;
@@ -34,7 +32,7 @@
         rdflib
         termcolor
         tqdm
-        pkgs.mypkgs.requests-sse
+        pkgs.requests-sse
       ];
     };
     importsCheck = [
@@ -45,4 +43,5 @@
   test.script = ''
     qlever --help 2>&1 /dev/null | grep "usage: qlever"
   '';
+};
 }
