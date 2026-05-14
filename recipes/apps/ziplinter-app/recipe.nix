@@ -22,8 +22,6 @@
 
     The output is a JSON object with a `"contents"` key listing all archived files along
     with their compression method, sizes, and other metadata.
-
-    _Available in: shell._
   '';
 
   links = {
