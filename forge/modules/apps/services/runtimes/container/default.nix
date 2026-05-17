@@ -17,12 +17,6 @@
       description = "Script to run once at startup.";
     };
 
-    tag = lib.mkOption {
-      type = lib.types.str;
-      default = "latest";
-      description = "Tag of the generated container.";
-    };
-
     packages = lib.mkOption {
       type = lib.types.listOf lib.types.package;
       default = [ ];
@@ -112,7 +106,7 @@
             );
         build-oci-image = pkgs.writeShellScriptBin "build-oci-image" ''
           ${config.result.recipe.copyTo}/bin/copy-to \
-            oci-archive:${app.name}.tar:${app.name}:${config.tag}
+            oci-archive:${app.name}.tar:${app.name}:latest
           echo "Container image created in $(pwd)/${app.name}.tar ."
         '';
         compose-file = pkgs.runCommand "compose-file" { } ''
