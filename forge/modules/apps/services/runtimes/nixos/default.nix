@@ -24,18 +24,18 @@
         Packages to add to the NixOS system.
 
         This is a convenience option equivalent to setting
-        `extraConfig.environment.systemPackages`.
+        `nixosConfig.environment.systemPackages`.
       '';
       example = lib.literalExpression "[ pkgs.btop ]";
     };
 
-    extraConfig = lib.mkOption {
+    nixosConfig = lib.mkOption {
       type = with lib.types; deferredModule;
       default = { };
       description = ''
-        NixOS system configuration
+        NixOS system configuration.
 
-        See: https://search.nixos.org/options
+        Available options: <https://search.nixos.org/options>
       '';
       example = lib.literalExpression ''
         {
@@ -106,7 +106,7 @@
       setup = import ./modules/setup.nix args;
       nimi = import ./modules/nimi.nix args;
       virt = import ./modules/virt.nix args;
-      extraConfig = config.extraConfig;
+      nixosConfig = config.nixosConfig;
       packages = {
         environment.systemPackages = config.packages;
       };
