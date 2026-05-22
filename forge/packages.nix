@@ -55,7 +55,20 @@
       packages = {
         _forge-config = pkgs.writeTextFile {
           name = "forge-config.json";
-          text = builtins.toJSON config.forge;
+          text =
+            let
+              scrubConfig =
+                x:
+                if lib.isString x || lib.isDerivation x then
+                  lib.unsafeDiscardStringContext x
+                else if lib.isList x then
+                  map scrubConfig x
+                else if lib.isAttrs x then
+                  lib.mapAttrs (n: v: scrubConfig v) x
+                else
+                  x;
+            in
+            builtins.toJSON (scrubConfig config.forge);
         };
 
         _forge-options = pkgs.runCommand "options.json" { } ''
