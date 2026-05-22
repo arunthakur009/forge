@@ -38,31 +38,57 @@ lib.listToAttrs (
           (lib.attrNames)
           (lib.strings.concatStringsSep ", ")
         ];
+
+        LINKS =
+          let
+            appLinks = lib.filterAttrs (_: link: link != null) app.links;
+          in
+          lib.concatMapAttrsStringSep "\n" (
+            name: value:
+            if name == "website" then
+              "  - [Website](${value})"
+            else if name == "docs" then
+              "  - [Documentation](${value})"
+            else if name == "source" then
+              "  - [Source Repository](${value})"
+            else
+              value
+          ) appLinks;
       };
 
       discourse = with info; ''
         Title: [Nix@NGI] ${NAME} packaged for NGI Forge
 
         [**${NAME}**](${HOMEPAGE_URL}) is a ${SUMMARY}.
-        This project is funded by the NGI0 ${GRANT_STR} grant(s).
 
         <WHAT_CAN_PEOPLE_DO_WITH_IT>
 
-        <OTHER_COMMENTS> <THANKS_PEOPLE_INVOLVED>
-
-        <LINK_TO_TRACKING_ISSUE>
-
         ### Try it out
 
-        Visit the [application](${APP_URL}) and launch ${NAME} in a shell environment, container, or NixOS VM.
+        Visit the [application page](${APP_URL}), launch ${NAME} in a shell environment, container, or NixOS VM and follow the usage instructions.
+
+        ### Links
+
+        ${lib.optionalString (app.links != { }) "- Project Details\n${LINKS}"}
+        - [NGI Forge Tracking Issue](<LINK_TO_TRACKING_ISSUE>)
+        - [Nixpkgs PR](<LINK_TO_NIXPKGS_PR>)
 
         ### Share your feedback
 
-        Please leave your feedback using this [short survey](${SURVEY_URL}).
+        We’d like to hear from you, so please leave your feedback using this [short survey](${SURVEY_URL}).
 
-        Alternatively, join the [office hours on Jitsi](${JITSI_URL}) every [Tuesday and Thursday from 15:00--16:00 CET/CEST](${CALENDAR_URL}) and the [NGIpkgs Matrix channel](${MATRIX_URL}) for any further comments or questions.
+        Alternatively, you can join the:
 
-        [Nix@NGI team webpage](${TEAM_URL}).'';
+        - [office hours on Jitsi](${JITSI_URL}) every [Tuesday and Thursday from 15:00--16:00 CET/CEST](${CALENDAR_URL})
+        - [NGIpkgs Matrix channel](${MATRIX_URL})
+
+        for any further comments or questions.
+
+        ---
+
+        This work has been done by @<PACKAGER_NAME> as part of the [Nix@NGI packaging effort](https://nixos.org/community/teams/ngi), funded by [NLnet](https://nlnet.nl) under the NGI0 ${GRANT_STR} grant(s).
+
+        <OTHER_COMMENTS> <THANKS_PEOPLE_INVOLVED>'';
 
       nlnet = with info; ''
         Subject: [Nix@NGI] ${NAME} packaged for NGI Forge
