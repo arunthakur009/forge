@@ -97,6 +97,13 @@
         description = "NixOS Virtual Machine.";
       };
 
+      nixosModule = lib.mkOption {
+        internal = true;
+        readOnly = true;
+        type = lib.types.deferredModule;
+        description = "Final application NixOS module exposed as forge.packages.\${system}.<app>.nixosModules.default.";
+      };
+
       # HACK:
       # Prevent toJSON from attempting to convert the `eval` option,
       # which won't work because it's a whole NixOS evaluation.
@@ -119,6 +126,15 @@
       packages = {
         environment.systemPackages = config.packages;
       };
+    };
+
+    result.nixosModule = {
+      imports = [
+        config.result.modules.setup
+        config.result.modules.nimi
+        config.result.modules.packages
+        config.result.modules.nixosConfig
+      ];
     };
 
     result.eval = inputs.nixpkgs.lib.nixosSystem {
