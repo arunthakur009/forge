@@ -43,6 +43,8 @@
           PassEnvironment = lib.attrNames service.environment;
           User = lib.mkDefault serviceName;
           Group = lib.mkDefault serviceName;
+          StateDirectory = serviceName;
+          WorkingDirectory = service.stateDir;
         }
         (lib.optionalAttrs (service.user == "prefer-dynamic") {
           DynamicUser = true;

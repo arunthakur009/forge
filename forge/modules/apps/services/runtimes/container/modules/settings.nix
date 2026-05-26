@@ -23,7 +23,7 @@
         etcFiles = pkgs.runCommand "etc-${serviceName}" { } ''
           mkdir -p $out/etc
           echo 'root:x:0:0:root:/root:/bin/sh' > $out/etc/passwd
-          echo '${serviceName}:x:${uid}:${gid}:${serviceName}:/var/lib/${serviceName}:/sbin/nologin' >> $out/etc/passwd
+          echo '${serviceName}:x:${uid}:${gid}:${serviceName}:${service.stateDir}:/sbin/nologin' >> $out/etc/passwd
           echo 'root:x:0:' > $out/etc/group
           echo '${serviceName}:x:${gid}:' >> $out/etc/group
           echo 'root:!:0::::::' > $out/etc/shadow
@@ -40,8 +40,15 @@
         ];
       };
 
-    imageConfig = componentConfig.imageConfig // {
+    imageConfig = {
+      WorkingDir = service.stateDir;
       User = if service.user == "root" then "root" else serviceName;
+    }
+    // componentConfig.imageConfig
+    // {
+      Volumes = (componentConfig.imageConfig.Volumes or { }) // {
+        "${service.stateDir}" = { };
+      };
       Env =
         let
           # { K = "V"; } -> [ "K=V" ]

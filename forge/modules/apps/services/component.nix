@@ -97,6 +97,17 @@
       '';
     };
 
+    stateDir = lib.mkOption {
+      type = lib.types.str;
+      default = "/var/lib/${name}";
+      description = ''
+        Path to the service state directory.
+
+        Defaults to `/var/lib/<service-name>`.
+      '';
+      example = "/var/lib/myapp/data";
+    };
+
     ports = lib.mkOption {
       type = lib.types.listOf (lib.types.strMatching "^[0-9]+:[0-9]+$");
       default = [ ];
