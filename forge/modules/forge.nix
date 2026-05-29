@@ -14,8 +14,19 @@
       specialArgs = {
         inherit system;
         inputs = flakeInputs;
-        # Extend `pkgs` with the per-system `packages`.
-        pkgs = pkgs.extend (final: prev: config.packages);
+        pkgs = pkgs.extend (
+          finalPkgs: previousPkgs:
+          # Extend `pkgs` with the `packages` from the forge.
+          config.packages
+          // {
+            # `pkgs.pkgsOriginal` provides packages from the original `pkgs` (usually from Nixpkgs)
+            # Eg. `pkgs.pkgsOriginal.offen` (Nixpkgs) and `pkgs.offen` (ngi-forge).
+            # Note that as a consequence, all dependencies of those packages
+            # remain those coming from the original `pkgs`,
+            # even when they happen to also packaged in the forge.
+            pkgsOriginal = previousPkgs;
+          }
+        );
       };
       modules = [
         {
