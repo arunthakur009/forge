@@ -1,5 +1,5 @@
 {
-  inputs,
+  forge-inputs,
   lib,
   pkgs,
   ...
@@ -137,7 +137,7 @@
       };
 
       debugShellHookAttr = {
-        shellHook = "source ${inputs.ngi-forge.inputs.nix-utils}/nix-develop-interactive.bash";
+        shellHook = "source ${forge-inputs.nix-utils}/nix-develop-interactive.bash";
       };
     };
   };

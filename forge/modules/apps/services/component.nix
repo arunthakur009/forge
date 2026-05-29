@@ -1,6 +1,6 @@
 {
   name,
-  inputs,
+  forge-inputs,
   pkgs,
 
   lib,
@@ -8,7 +8,7 @@
 }:
 {
   imports = [
-    (lib.modules.importApply (inputs.ngi-forge.inputs.nixpkgs + "/lib/services/config-data.nix") {
+    (lib.modules.importApply (forge-inputs.nixpkgs + "/lib/services/config-data.nix") {
       inherit pkgs;
     })
   ];

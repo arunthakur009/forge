@@ -1,5 +1,5 @@
 {
-  inputs,
+  forge-inputs,
   app,
 
   lib,
@@ -8,7 +8,7 @@
 {
 
   imports = [
-    inputs.ngi-forge.inputs.nimi.nixosModules.default
+    forge-inputs.nimi.nixosModules.default
   ];
 
   nimi = lib.mapAttrs (serviceName: service: {

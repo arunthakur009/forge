@@ -7,9 +7,17 @@
 let
   # A let-binding must be used to be able to both use and export `flakeModules`.
   flakeModules = {
-    base = {
+    base = flakeArgs: {
+      imports = [
+        {
+          # Expose the `inputs` from `ngi-forge`
+          # Note that this `inputs` is always `ngi-forge`'s,
+          # even when `flakeModules.base` has been imported in another `flake.nix`.
+          _module.args.forge-inputs = inputs;
+        }
+      ];
       options.perSystem = flake-parts-lib.mkPerSystemOption (
-        { system, ... }:
+        { system, forge-inputs, ... }:
         {
           imports = [
             # Definitions of options under `forge`.
@@ -20,13 +28,12 @@ let
             ./packages.nix
           ];
 
-          # Workaround flake-parts exposing only `inputs'`
-          # and forbidding `inputs` in `perSystem`,
-          # but we need access to `inputs.ngi-forge.inputs`.
-          _module.args.flakeInputs = inputs;
+          _module.args.self-inputs = flakeArgs.inputs;
+          _module.args.flake-parts-lib = flake-parts-lib;
+          _module.args.forge-inputs = inputs;
 
           # Do not require users to pin their own `inputs.nixpkgs`.
-          _module.args.pkgs = lib.mkDefault (inputs.ngi-forge.inputs.nixpkgs.legacyPackages.${system});
+          _module.args.pkgs = lib.mkDefault forge-inputs.nixpkgs.legacyPackages.${system};
         }
       );
     };

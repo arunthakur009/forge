@@ -2,18 +2,17 @@
   config,
   lib,
   pkgs,
-  flakeInputs,
+  forge-inputs,
+  flake-parts-lib,
   ...
 }:
 
 let
-  inputs = flakeInputs;
   evalForgeModules =
     modules:
-    lib.evalModules {
-      modules = modules;
-      specialArgs = { inherit inputs; };
-    };
+    flake-parts-lib.evalFlakeModule {
+      inputs = forge-inputs;
+    } { imports = modules; };
 
   forgeOptionsDoc =
     modules:
@@ -32,7 +31,7 @@ let
 
   forgeApps = config.forge.apps;
   forgeOptions = forgeOptionsDoc [
-    inputs.ngi-forge.flakeModules.base
+    forge-inputs.self.flakeModules.base
   ];
 
   # Collect app icons into a derivation
@@ -77,7 +76,7 @@ in
         _forge-options
         ;
       inherit appIcons;
-      buildElmApplication = (inputs.elm2nix.lib.elm2nix pkgs).buildElmApplication;
+      buildElmApplication = (forge-inputs.elm2nix.lib.elm2nix pkgs).buildElmApplication;
       highlight-js = pkgs.callPackage ../flake/packages/highlight-js.nix { };
     };
 
