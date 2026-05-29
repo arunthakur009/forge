@@ -46,6 +46,10 @@
         preStart = ''
           qlever-ui-manage makemigrations --merge && qlever-ui-manage migrate
         '';
+        packages = with pkgs; [
+          qlever-ui
+          subversion
+        ];
         ports = [
           "8080:8080"
         ];
@@ -76,6 +80,12 @@
           "start"
           "--run-in-foreground"
         ];
+        packages = with pkgs; [
+          curl
+          qlever
+          qlever-control
+          unzip
+        ];
         ports = [
           "7019:7019"
         ];
@@ -85,11 +95,6 @@
         container = {
           enable = true;
           components.qlever-ui = {
-            packages = with pkgs; [
-              qlever-ui
-              rsync
-              subversion
-            ];
             setup =
               # bash
               ''
@@ -102,14 +107,15 @@
 
                 rsync -a --chmod=u=rwX,go=rX --exclude='/db/' ${pkgs.qlever-ui}/opt/ "$WORKDIR"
               '';
+            packages = with pkgs; [
+              rsync # required by setup
+            ];
           };
+
           components.qlever-server = {
             packages = with pkgs; [
-              bash
-              coreutils
-              curl
-              qlever
-              qlever-control
+              bash # required by qlever index
+              coreutils # required by qlever index
             ];
           };
         };
@@ -117,29 +123,9 @@
         nixos = {
           enable = true;
           setup = apps.qlever.services.runtimes.container.components.qlever-ui.setup;
-          nixosConfig = {
-            systemd.services."qlever-setup" = {
-              path = with pkgs; [
-                rsync
-              ];
-            };
-
-            systemd.services."qlever-ui" = {
-              path = with pkgs; [
-                qlever-ui
-                subversion
-              ];
-            };
-
-            systemd.services."qlever-server" = {
-              path = with pkgs; [
-                curl
-                qlever
-                qlever-control
-                unzip
-              ];
-            };
-          };
+          packages = with pkgs; [
+            rsync # required by setup
+          ];
         };
       };
     };

@@ -102,10 +102,17 @@
       default = "/var/lib/${name}";
       description = ''
         Path to the service state directory.
-
-        Defaults to `/var/lib/<service-name>`.
       '';
       example = "/var/lib/myservice";
+    };
+
+    packages = lib.mkOption {
+      type = lib.types.listOf lib.types.package;
+      default = [ ];
+      description = ''
+        Additional packages available for the service.
+      '';
+      example = lib.literalExpression "[ pkgs.rsync pkgs.jq ]";
     };
 
     ports = lib.mkOption {
