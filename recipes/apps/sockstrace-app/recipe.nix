@@ -1,7 +1,5 @@
 {
-  config,
   pkgs,
-  lib,
   ...
 }:
 {
@@ -19,8 +17,6 @@
       ```bash
       sockstrace -- curl https://example.com
       ```
-
-      _Available in: shell._
     '';
 
     links = {
