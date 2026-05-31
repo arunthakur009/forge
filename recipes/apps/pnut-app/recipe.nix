@@ -23,8 +23,6 @@
       pnut pnut.c > pnut-bootstrap.sh
       chmod +x pnut-bootstrap.sh
       ```
-
-      _Available in: shell._
     '';
 
     links = {
