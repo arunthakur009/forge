@@ -37,12 +37,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Install Nix
-        uses: cachix/install-nix-action@19effe9fe722874e6d46dd7182e4b8b7a43c4a99 # v31.10.0
+        uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
 
-      - uses: cachix/cachix-action@v16
+      - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: ngi-forge
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
@@ -57,9 +59,11 @@ jobs:
       - name: Initialize ${{ inputs.template }} template
         working-directory: /tmp/template-test
         run: |
-          nix flake init -t ${{ github.workspace }}#${{ inputs.template }}
+          nix flake init -t "${{ github.workspace }}#${INPUTS_TEMPLATE}"
           sed -i 's|ngi-forge.url = .*;|ngi-forge.url = "path:${{ github.workspace }}";|g' flake.nix
           git add ./*
+        env:
+          INPUTS_TEMPLATE: ${{ inputs.template }}
 
       - name: Show flake info
         working-directory: /tmp/template-test
@@ -70,22 +74,30 @@ jobs:
       - name: Build package
         if: inputs.package != ''
         working-directory: /tmp/template-test
-        run: nix build .#${{ inputs.package }} --accept-flake-config
+        run: nix build .#"${INPUTS_PACKAGE}" --accept-flake-config
+        env:
+          INPUTS_PACKAGE: ${{ inputs.package }}
 
       - name: Build app (shell)
         if: inputs.app != '' && inputs.test_shell
         working-directory: /tmp/template-test
-        run: nix build .#${{ inputs.app }}-app --accept-flake-config
+        run: nix build .#"${INPUTS_APP}-app" --accept-flake-config
+        env:
+          INPUTS_APP: ${{ inputs.app }}
 
       - name: Build app (container)
         if: inputs.app != '' && inputs.test_container
         working-directory: /tmp/template-test
-        run: nix build .#${{ inputs.app }}-app.container --accept-flake-config
+        run: nix build .#"${INPUTS_APP}-app.container" --accept-flake-config
+        env:
+          INPUTS_APP: ${{ inputs.app }}
 
       - name: Build app (VM)
         if: inputs.app != '' && inputs.test_vm
         working-directory: /tmp/template-test
-        run: nix build .#${{ inputs.app }}-app.vm --accept-flake-config
+        run: nix build .#"${INPUTS_APP}-app.vm" --accept-flake-config
+        env:
+          INPUTS_APP: ${{ inputs.app }}
 
       - name: Build _forge-ui
         if: inputs.test_forge_ui
