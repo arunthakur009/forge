@@ -11,6 +11,8 @@ on:
         required: false
         type: string
 
+permissions: {}
+
 jobs:
   test:
     name: Run tests
