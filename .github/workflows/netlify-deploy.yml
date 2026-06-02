@@ -79,8 +79,8 @@ jobs:
         run: |
           npx netlify-cli deploy \
             --dir=deploy_dist \
-            --alias="pr-${{ env.PR_NUMBER }}" \
-            --message="PR Preview for PR #${{ env.PR_NUMBER }}" \
+            --alias="pr-${PR_NUMBER}" \
+            --message="PR Preview for PR #${PR_NUMBER}" \
             | tee deploy_output.txt
 
           PREVIEW_URL=$(grep 'Draft URL:' deploy_output.txt | awk '{print $3}' | tr -d '<>')
@@ -217,8 +217,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           DEPLOY_ID=$(echo '{
-            "ref": "${{ env.PR_REV }}",
-            "environment": "Preview PR-${{ env.PR_NUMBER }}",
+            "ref": "${PR_REV}",
+            "environment": "Preview PR-${PR_NUMBER}",
             "description": "Netlify PR Preview",
             "transient_environment": true,
             "auto_merge": false,
@@ -229,5 +229,5 @@ jobs:
 
           gh api --method POST repos/${{ github.repository }}/deployments/"$DEPLOY_ID"/statuses \
             -f state="success" \
-            -f environment_url="${{ env.DEPLOY_URL }}" \
+            -f environment_url="${DEPLOY_URL}" \
             -f description="Preview is ready!"

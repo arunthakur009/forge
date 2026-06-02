@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       # - name: Get more storage space
       #   uses: wimpysworld/nothing-but-nix@main
@@ -41,6 +43,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Install Nix
         uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
@@ -65,16 +69,19 @@ jobs:
         with:
           # Fetches the specific PR branch if manually dispatched, otherwise defaults to standard checkout
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/pull/{0}/head', github.event.inputs.pr_number) || '' }}
+          persist-credentials: false
 
       - name: Save PR context
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "${{ github.event.inputs.pr_number }}" > pr-number.txt
+            echo "${GITHUB_EVENT_INPUTS_PR_NUMBER}" > pr-number.txt
             git rev-parse HEAD > pr-rev.txt
           else
             echo "${{ github.event.pull_request.number }}" > pr-number.txt
             echo "${{ github.event.pull_request.head.sha }}" > pr-rev.txt
           fi
+        env:
+          GITHUB_EVENT_INPUTS_PR_NUMBER: ${{ github.event.inputs.pr_number }}
 
       - name: Install Nix
         uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
