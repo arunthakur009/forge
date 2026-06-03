@@ -15,7 +15,7 @@
       Trace a command and detect any proxy leaks
 
       ```bash
-      sockstrace -- curl https://example.com
+      sockstrace -horklump.program ls
       ```
     '';
 

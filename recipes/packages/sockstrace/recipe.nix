@@ -5,7 +5,7 @@
 }:
 {
   packages.sockstrace = {
-    version = "1";
+    version = "1.0.0";
     description = "Ptrace-based proxy leak detector that identifies network connections bypassing configured proxies.";
     homePage = "https://github.com/namecoin/sockstrace";
     mainProgram = "sockstrace";
@@ -37,7 +37,7 @@
     };
 
     test.script = ''
-      sockstrace --help
+      sockstrace -horklump.program ls
     '';
   };
 }
