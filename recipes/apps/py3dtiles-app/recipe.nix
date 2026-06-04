@@ -31,6 +31,8 @@
       ```
     '';
 
+    icon = ./icon.svg;
+
     ngi.grants = {
       Core = [ "Py3DTiles" ];
     };
