@@ -2,7 +2,8 @@
   config,
   lib,
   pkgs,
-  flakeInputs,
+  self-inputs,
+  forge-inputs,
   system,
   ...
 }:
@@ -13,8 +14,9 @@
     type = lib.types.submoduleWith {
       specialArgs = {
         inherit system;
-        inputs = flakeInputs;
         forgeConfig = config;
+        inputs = self-inputs;
+        inherit forge-inputs;
         pkgs = pkgs.extend (
           finalPkgs: previousPkgs:
           # Extend `pkgs` with the `packages` from the forge.

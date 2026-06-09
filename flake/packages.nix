@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ forge-inputs, ... }:
 {
   perSystem =
     {
@@ -13,7 +13,7 @@
     {
       packages = {
         elm-watch = pkgs.callPackage packages/elm-watch.nix { };
-        elm2nix = inputs.ngi-forge.inputs.elm2nix.packages.${system}.default;
+        elm2nix = forge-inputs.elm2nix.packages.${system}.default;
       };
     };
 }

@@ -44,13 +44,7 @@
 
     flake-parts.lib.mkFlake
       {
-        inputs = inputs // {
-          # `flake.flakeModules` need to access some `inputs`
-          # that may not be declared in the `self` of users' `flake.nix` importing it,
-          # hence access those inputs through `inputs.ngi-forge.inputs`.
-          # This requires users to name the ngi-forge input `ngi-forge`.
-          ngi-forge = self;
-        };
+        inherit inputs;
       }
       (flakeArgs: {
         # Uncomment this to enable flake-parts debug.

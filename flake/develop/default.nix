@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ forge-inputs, ... }:
 {
   perSystem =
     {
@@ -9,8 +9,11 @@
     }:
 
     let
-      formatter = pkgs.callPackage ./formatter.nix { inherit inputs; };
-      devShell = pkgs.callPackage ./devshell.nix { inherit inputs formatter; };
+      formatter = pkgs.callPackage ./formatter.nix { inputs = forge-inputs; };
+      devShell = pkgs.callPackage ./devshell.nix {
+        inputs = forge-inputs;
+        inherit formatter;
+      };
 
       sphinxEnv = pkgs.python3.withPackages (pyPkgs: [
         pyPkgs.linkify-it-py
@@ -39,8 +42,8 @@
         pkgs.podman-compose
         pkgs.systemd-manager-tui
         pkgs.watchman
-        inputs.ngi-forge.packages.${system}.elm-watch
-        inputs.ngi-forge.packages.${system}.elm2nix
+        forge-inputs.self.packages.${system}.elm-watch
+        forge-inputs.self.packages.${system}.elm2nix
         sphinxEnv
       ];
     in

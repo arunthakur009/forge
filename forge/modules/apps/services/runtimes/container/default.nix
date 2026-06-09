@@ -1,5 +1,5 @@
 {
-  inputs,
+  forge-inputs,
   config,
   lib,
   system,
@@ -151,14 +151,14 @@
 
     result.evals = lib.mapAttrs (
       name: value:
-      inputs.ngi-forge.inputs.nimi.packages.${system}.nimi.passthru.evalNimiModule {
+      forge-inputs.nimi.packages.${system}.nimi.passthru.evalNimiModule {
         config = config.result.modules.${name};
       }
     ) app.services.components;
 
     result.recipes = lib.mapAttrs (
       name: value:
-      inputs.ngi-forge.inputs.nimi.packages.${system}.nimi.mkContainerImage {
+      forge-inputs.nimi.packages.${system}.nimi.mkContainerImage {
         config = config.result.modules.${name};
       }
     ) app.services.components;
@@ -170,7 +170,7 @@
         runtimeComponentPackages = config.components.${serviceName}.packages or [ ];
         binPaths = lib.makeBinPath ([ pkgs.coreutils ] ++ componentPackages ++ runtimeComponentPackages);
       in
-      inputs.ngi-forge.inputs.nimi.packages.${system}.nimi.mkBwrap {
+      forge-inputs.nimi.packages.${system}.nimi.mkBwrap {
         settings.bubblewrap.environment = service.environment // {
           PATH = binPaths;
         };
