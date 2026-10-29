@@ -1,15 +1,19 @@
 {
   lib,
+  forge-lib,
   name,
   specialArgs,
+  config,
   ...
 }:
 {
   imports = [
+    ../assertions-warnings.nix
     ../builders/identity-builder
     ../builders/standard-builder
     ../builders/go-builder
     ../builders/npm-package-builder
+    ../builders/ocaml-builder
     ../builders/pnpm-package-builder
     ../builders/python-app-builder
     ../builders/python-package-builder
@@ -18,6 +22,12 @@
   ];
   config._recipeType = "pkgs";
   options = {
+    enable = lib.mkOption {
+      type = lib.types.bool;
+      default = specialArgs.enable;
+      defaultText = lib.literalExpression "config.forge.enable";
+      description = "Whether to publish the package in Forge repository in Flake output.";
+    };
     pname = lib.mkOption {
       type = lib.types.strMatching "^[a-zA-Z0-9-]+$";
       default = name;
@@ -40,6 +50,14 @@
       description = "Short package description. Maximum 120 characters.";
       example = "A program that prints greeting messages.";
     };
+    longDescription = lib.mkOption {
+      type = lib.types.str // {
+        check = v: lib.isString v && lib.stringLength v <= 420;
+        description = "string of 420 characters or fewer";
+      };
+      default = "";
+      description = "Long package description. Maximum 420 characters.";
+    };
     version = lib.mkOption {
       type = lib.types.str;
       default = "1.0.0";
@@ -48,7 +66,6 @@
     };
     homePage = lib.mkOption {
       type = lib.types.strMatching "[a-zA-Z][a-zA-Z0-9+\-.]*://[^ \t\n]+";
-      default = "";
       description = "Package home page URL.";
       example = "https://www.gnu.org/software/hello/";
     };
@@ -154,6 +171,16 @@
         '';
         example = true;
       };
+      lfs = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Fetch Git LFS objects along with the repository source.
+
+          Only applicable when using `source.git`.
+        '';
+        example = true;
+      };
       patches = lib.mkOption {
         type = lib.types.listOf lib.types.path;
         default = [ ];
@@ -172,6 +199,7 @@
       type = lib.types.submoduleWith {
         inherit specialArgs;
         modules = [
+          pkg/env.nix
           {
             options = {
               # Builder-specific options are defined in separate modular
@@ -233,32 +261,13 @@
     };
 
     # Test configuration
-    test = {
-      packages = lib.mkOption {
-        type = lib.types.listOf lib.types.package;
-        default = [ ];
-        description = "List of packages available in the test script.";
-        example = lib.literalExpression "[ pkgs.curl pkgs.jq ]";
+    test = lib.mkOption {
+      type = lib.types.submoduleWith {
+        inherit specialArgs;
+        modules = [ ./test.nix ];
       };
-      script = lib.mkOption {
-        type = lib.types.str;
-        default = ''
-          echo "Test script"
-        '';
-        description = ''
-          Script to test the package.
-          The package being tested is available in PATH.
-
-          Launch test with:
-
-          ```
-          nix build .#pkgs.''${package}.test
-          ```
-        '';
-        example = ''
-          hello | grep "Hello, world"
-        '';
-      };
+      default = { };
+      description = "Test configuration";
     };
 
     # Development configuration
@@ -303,7 +312,71 @@
         type = lib.types.package;
         internal = true;
         description = "Resulting derivation of the package.";
+        # Warnings and assertions are checked only when the package is
+        # evaluated, to not slow down evaluation of other flake outputs.
+        apply = forge-lib.checkAssertionsWarnings {
+          inherit (config) assertions warnings;
+        };
       };
     };
+  };
+
+  config = {
+    assertions =
+      let
+        builders = lib.filterAttrs (name: _: lib.hasSuffix "Builder" name) config.build;
+        builderNames = map (name: "build." + name) (lib.attrNames builders);
+
+        enabledBuilders = lib.filterAttrs (_: b: b.enable) builders;
+        enabledBuilderNames = map (name: "build." + name) (lib.attrNames enabledBuilders);
+
+        enabledBuildersCount = lib.length enabledBuilderNames;
+      in
+      [
+        {
+          condition =
+            !(
+              config.source.git == null
+              && config.source.url == null
+              && config.source.path == null
+              && !config.build.identityBuilder.enable
+            );
+          message = ''
+            Package '${config.pname}': one of sources options must be defined.
+            Available options: source.git, source.url, or source.path.
+          '';
+        }
+        {
+          condition = !(enabledBuildersCount != 1);
+          message = ''
+            Package '${config.pname}': only one builder can be enabled at a time.
+            Enabled options: ${lib.concatStringsSep ", " enabledBuilderNames}.
+          '';
+        }
+        {
+          condition = !(enabledBuildersCount == 0);
+          message = ''
+            Package '${config.pname}': one of builder options must be enabled.
+            Available options: ${lib.concatStringsSep ", " builderNames}.
+          '';
+        }
+      ];
+
+    warnings = [
+      {
+        condition =
+          config.source.hash == "" && config.source.path == null && !config.build.identityBuilder.enable;
+        message = ''
+          Package '${config.pname}': source.hash is empty.
+          Correct hash will be printed in the error message when package is built.
+        '';
+      }
+      {
+        condition = config.license == [ ];
+        message = ''
+          Package '${config.pname}': license is empty.
+        '';
+      }
+    ];
   };
 }

@@ -4,6 +4,12 @@
 }:
 
 {
+  pkgs.goupile = {
+    build.identityBuilder = {
+      enable = true;
+      derivation = pkgs.pkgsOriginal.goupile;
+    };
+  };
   apps.goupile = {
     displayName = "Goupile";
     description = "Free design tool for secure forms including Clinical Report Forms (eCRF).";
@@ -53,7 +59,7 @@
       script = ''
         curl="curl --retry 5 --retry-max-time 120 --retry-all-errors"
 
-        $curl --location localhost:8181 | grep -q "Goupile" >/dev/null
+        $curl --location localhost:8181 | grep "Goupile" >/dev/null
       '';
     };
   };

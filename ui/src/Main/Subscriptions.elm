@@ -18,7 +18,7 @@ subscriptions model =
         [ Navigation.onEvent Main.Ports.Navigation.onNavEvent Update_Navigation
         , case model.model_page of
             Page_App pageApp ->
-                if pageApp.pageApp_route.routeApp_runShown then
+                if pageApp.pageApp_route.routeApp_runShown || pageApp.pageApp_route.routeApp_deployShown then
                     Sub.none
 
                 else
@@ -28,16 +28,16 @@ subscriptions model =
                 Browser.Events.onKeyDown decodeAmbientKeyPress
         , case model.model_page of
             Page_App pageApp ->
-                if pageApp.pageApp_route.routeApp_runShown then
+                if pageApp.pageApp_route.routeApp_runShown || pageApp.pageApp_route.routeApp_deployShown || pageApp.pageApp_route.routeApp_iconShown then
                     Browser.Events.onKeyDown
                         (decodeEscapeKey
                             |> Decode.map
-                                (\showRun ->
+                                (\_ ->
                                     let
                                         route =
                                             pageApp.pageApp_route
                                     in
-                                    Update_RouteWithoutHistory (Route_App { route | routeApp_runShown = showRun })
+                                    Update_RouteWithoutHistory (Route_App { route | routeApp_runShown = False, routeApp_deployShown = False, routeApp_iconShown = False })
                                 )
                         )
 

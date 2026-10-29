@@ -27,6 +27,8 @@
         options.build = lib.mkOption {
           type = lib.types.submoduleWith {
             modules = [
+              ./env.nix
+              ./structuredAttrs.nix
               ({ specialArgs, config, ... }: {
                 options.${name} = lib.mkOption {
                   default = { };
@@ -34,6 +36,8 @@
                     inherit specialArgs;
                     modules = [
                       imports
+                      ./env.nix
+                      ./structuredAttrs.nix
                       {
                         options.packages = {
                           build = lib.mkOption {
@@ -73,6 +77,9 @@
                     ];
                   };
                 };
+                config = lib.mkIf config.${name}.enable {
+                  inherit (config.${name}) env structuredAttrs;
+                };
               })
             ];
           };
@@ -83,7 +90,8 @@
             let
               mkSharedAttrs =
                 finalAttrs:
-                {
+                config.build.structuredAttrs
+                // {
                   inherit (config)
                     pname
                     version
@@ -95,16 +103,15 @@
                     patches
                     ;
 
+                  __structuredAttrs = true;
+                  inherit (config.build) env;
+
                   nativeBuildInputs = builder.packages.build;
                   buildInputs = builder.packages.run;
                   nativeCheckInputs = builder.packages.check;
 
                   passthru = {
-                    test = pkgs.testers.runCommand {
-                      name = "${finalAttrs.pname}-test";
-                      buildInputs = [ finalAttrs.finalPackage ] ++ config.test.packages;
-                      script = config.test.script + "\ntouch $out";
-                    };
+                    test = config.test.derivation { inherit pkgs finalAttrs; };
 
                     env = pkgs.mkShell {
                       dontBuild = true;
@@ -133,8 +140,13 @@
                     homepage = config.homePage;
                   };
                 }
-                // lib.optionalAttrs config.build.debug {
-                  shellHook = "source ${forge-inputs.inputs.nix-utils}/nix-develop-interactive.bash";
+                // {
+                  shellHook = ''
+                    echo "ngi-forge: '${finalAttrs.pname}' is available at version '${finalAttrs.version}'."
+                  ''
+                  + lib.optionalString config.build.debug ''
+                    source ${forge-inputs.nix-utils}/nix-develop-interactive.bash
+                  '';
                 }
                 //
                   # Warning(co-existence): `extraAttrs` is overridden by the builder's options.

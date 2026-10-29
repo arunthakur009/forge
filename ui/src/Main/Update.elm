@@ -1,6 +1,7 @@
 module Main.Update exposing (..)
 
 import Browser.Dom as Dom
+import File.Download
 import List.Extra as List
 import Main.Config exposing (..)
 import Main.Config.App exposing (..)
@@ -78,10 +79,21 @@ update upd modelInit =
             , Clipboard.copyToClipboard code
             )
 
+        Update_DownloadFile { filename, content } ->
+            ( model
+            , File.Download.string filename "text/plain" content
+            )
+
         Update_SetPreferences prefs ->
             ( { model | model_preferences = prefs }
             , setPreferences prefs
             )
+
+        Update_ShuffleApps ->
+            ( { model | model_ephemeralSeed = model.model_ephemeralSeed + 1 }, Cmd.none )
+
+        Update_ToggleAppsSortDropdown ->
+            ( { model | model_appsSortDropdownOpen = not model.model_appsSortDropdownOpen }, Cmd.none )
 
         Update_DismissFeedback ->
             ( { model | model_askFeedback = False }, Cmd.none )
@@ -102,6 +114,9 @@ update upd modelInit =
 
         Update_ToggleNavBar ->
             ( { model | model_navbarExpanded = not model.model_navbarExpanded }, Cmd.none )
+
+        Update_SearchFocus focused ->
+            ( { model | model_searchFocused = focused }, Cmd.none )
 
         Update_Search search ->
             if

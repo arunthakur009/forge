@@ -2,6 +2,7 @@ html,
 body {
   height: 100%;
   margin: 0;
+  overflow-x: hidden;
 }
 
 @media (prefers-color-scheme: light) {
@@ -35,12 +36,8 @@ body {
   overflow-x: auto;
 }
 
-.markdown-content code {
-  color: #f8f9fa;
-  background-color: transparent;
-}
-
 .markdown-content pre code {
+  background-color: transparent;
   display: block;
   color: #f8f9fa;
   font-family: "Courier New", Courier, monospace;
@@ -48,12 +45,18 @@ body {
   line-height: 1.5;
 }
 
-.markdown-content p code {
+.markdown-content code {
   background-color: #2d2d2d;
   color: #f8f9fa;
   padding: 0.2em 0.4em;
   border-radius: 0.25rem;
   font-size: 0.9em;
+}
+
+.markdown-content a,
+.button.copy {
+  position: relative;
+  z-index: 2;
 }
 
 .button {
@@ -71,6 +74,17 @@ body {
 
 .button.copy {
   opacity: 0.7;
+}
+
+highlightjs-code {
+  display: block;
+  max-width: 100%;
+}
+
+highlightjs-code pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-width: 100%;
 }
 
 .button.copy:after {
@@ -97,42 +111,130 @@ body {
   border: solid 1px gray;
 }
 
+/* Unified Card and List Item styling across all pages (apps, packages, options) */
+.m-item-card,
+.list-group-item {
+  transition:
+    transform 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
+}
+
 .m-item-card {
-  transition: background-color 0.15s ease-in-out;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  height: auto;
+  min-height: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 0.75rem;
+}
+
+.item-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  word-break: break-word;
+  color: inherit;
+}
+
+/* Light mode styling */
+[data-bs-theme="light"] .m-item-card,
+[data-bs-theme="light"] .list-group-item,
+[data-bs-theme="light"] .m-sidebar {
+  background-color: #f8f9fa;
+  border-color: #e9ecef;
+}
+
+[data-bs-theme="light"] .m-item-card:hover,
+[data-bs-theme="light"] .list-group-item-action:hover,
+[data-bs-theme="light"] .list-group-item-action:focus {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+/* Dark mode: darker background color for cards and list items */
+[data-bs-theme="dark"] .m-item-card,
+[data-bs-theme="dark"] .list-group-item,
+[data-bs-theme="dark"] .m-sidebar {
+  background-color: #16191d;
+  border-color: #2d3238;
+}
+
+[data-bs-theme="dark"] .m-item-card:hover,
+[data-bs-theme="dark"] .list-group-item-action:hover,
+[data-bs-theme="dark"] .list-group-item-action:focus {
+  background-color: #1f2329;
+  border-color: #3e454d;
+}
+
+/* Fallback for when data-bs-theme is unset */
+@media (prefers-color-scheme: light) {
+  :root:not([data-bs-theme="dark"]) .m-item-card,
+  :root:not([data-bs-theme="dark"]) .list-group-item,
+  :root:not([data-bs-theme="dark"]) .m-sidebar {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+  }
+
+  :root:not([data-bs-theme="dark"]) .m-item-card:hover,
+  :root:not([data-bs-theme="dark"]) .list-group-item-action:hover,
+  :root:not([data-bs-theme="dark"]) .list-group-item-action:focus {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-bs-theme="light"]) .m-item-card,
+  :root:not([data-bs-theme="light"]) .list-group-item,
+  :root:not([data-bs-theme="light"]) .m-sidebar {
+    background-color: #16191d;
+    border-color: #2d3238;
+  }
+
+  :root:not([data-bs-theme="light"]) .m-item-card:hover,
+  :root:not([data-bs-theme="light"]) .list-group-item-action:hover,
+  :root:not([data-bs-theme="light"]) .list-group-item-action:focus {
+    background-color: #1f2329;
+    border-color: #3e454d;
+  }
+}
+
+.m-item-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12) !important;
+  z-index: 10;
+}
+
+[data-bs-theme="dark"] .m-item-card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.4) !important;
 }
 
 .m-item-card-description {
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  height: 4.5em;
   line-height: 1.5;
+  font-size: 0.9rem;
+  margin-bottom: 0;
 }
 
-.m-item-card:hover {
-  background-color: #f8f9fa;
+@media (min-width: 1068px) {
+  .m-item-card-description {
+    -webkit-line-clamp: 3;
+  }
 }
 
-[data-bs-theme="dark"] .m-item-card:hover {
-  background-color: #2a3036;
+@media (min-width: 1470px) {
+  .m-item-card-description {
+    -webkit-line-clamp: 5;
+  }
 }
 
 /* App icons */
 .item-card-icon {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-  flex-shrink: 0;
-  background-color: transparent;
-  border-radius: 8px;
-  color: transparent; /* Hide alt text before image loads on firefox */
-  font-size: 0;
-}
-
-.item-header-icon {
   width: 64px;
   height: 64px;
   object-fit: contain;
@@ -141,6 +243,27 @@ body {
   border-radius: 12px;
   color: transparent; /* Hide alt text before image loads on firefox */
   font-size: 0;
+  transition: transform 0.2s ease-in-out;
+}
+
+.m-item-card:hover .item-card-icon {
+  transform: scale(1.05);
+}
+
+.item-header-icon {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  flex-shrink: 0;
+  background-color: transparent;
+  border-radius: 12px;
+  color: transparent; /* Hide alt text before image loads on firefox */
+  font-size: 0;
+  transition: transform 0.1s ease-in-out;
+}
+
+.item-header-icon:hover {
+  transform: scale(1.03);
 }
 
 /* Hide the annoying border around search bar that bootstrap adds */
@@ -159,27 +282,31 @@ body {
   border-color: transparent !important;
 }
 
-/* Default: small screens */
+/* Default (Super tiny width, < 380px): 1 column (12 / 1 = 12 full rows) */
 .m-item-grid {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(max(200px, 100%), 1fr)
-  ); /* 1 column */
+  gap: 0.85rem;
+  grid-template-columns: repeat(1, 1fr);
 }
 
-/* 320px+ allow multiple and allow them to stretch to full width */
-@media (min-width: 321px) {
+/* 380px to 767px (Mobile & Small Tablets): 2 columns (12 / 2 = 6 full rows) */
+@media (min-width: 380px) {
   .m-item-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* for large screens use auto-fill to avoid auto-fit stretching each item card too wide */
-@media (min-width: 900px) {
+/* 768px to 991px: 3 columns (12 / 3 = 4 full rows) */
+@media (min-width: 768px) {
   .m-item-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* 992px+: 4 columns max (12 / 4 = 3 full rows) */
+@media (min-width: 992px) {
+  .m-item-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -233,14 +360,6 @@ details.accordion-item[open] > summary.accordion-button::after {
 
 .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
   transform: rotate(180deg);
-}
-
-@media (max-width: 768px) {
-  .brand-text {
-    max-width: 0;
-    opacity: 0;
-    margin-left: 0;
-  }
 }
 
 /* remove bootstrap default behavior */
@@ -339,8 +458,13 @@ a:link {
 /* options filters colors */
 
 [data-bs-theme="light"] {
-  --bs-primary-rgb: 76, 110, 181; /* nixos logo color dark blue - Not enough contrast */
-  --bs-primary-text-emphasis: #4d6fb6;
+  --bs-primary-rgb:
+    76, 110, 181; /* nixos logo color dark blue - Not enough contrast */
+  --bs-primary-text-emphasis: #00418f;
+  --bs-link-color: #00418f;
+  --bs-link-color-rgb: 0, 65, 143;
+  --bs-link-hover-color: #002d62;
+  --bs-link-hover-color-rgb: 0, 45, 98;
 }
 
 [data-bs-theme="dark"] {
@@ -357,6 +481,8 @@ a:link {
 
 .option-name {
   color: var(--option-name-color);
+  overflow-wrap: anywhere;
+  word-wrap: break-word;
 }
 
 [data-bs-theme="dark"] {
@@ -405,27 +531,191 @@ pre code.hljs {
   fill: currentColor;
 }
 
-.markdown-alert-note { border-left-color: #0969da; }
-[data-bs-theme="dark"] .markdown-alert-note { border-left-color: #2f81f7; }
-.markdown-alert-note .markdown-alert-title { color: #0969da; }
-[data-bs-theme="dark"] .markdown-alert-note .markdown-alert-title { color: #2f81f7; }
+.markdown-alert-note {
+  border-left-color: #0969da;
+}
+[data-bs-theme="dark"] .markdown-alert-note {
+  border-left-color: #2f81f7;
+}
+.markdown-alert-note .markdown-alert-title {
+  color: #0969da;
+}
+[data-bs-theme="dark"] .markdown-alert-note .markdown-alert-title {
+  color: #2f81f7;
+}
 
-.markdown-alert-tip { border-left-color: #1a7f37; }
-[data-bs-theme="dark"] .markdown-alert-tip { border-left-color: #3fb950; }
-.markdown-alert-tip .markdown-alert-title { color: #1a7f37; }
-[data-bs-theme="dark"] .markdown-alert-tip .markdown-alert-title { color: #3fb950; }
+.markdown-alert-tip {
+  border-left-color: #1a7f37;
+}
+[data-bs-theme="dark"] .markdown-alert-tip {
+  border-left-color: #3fb950;
+}
+.markdown-alert-tip .markdown-alert-title {
+  color: #1a7f37;
+}
+[data-bs-theme="dark"] .markdown-alert-tip .markdown-alert-title {
+  color: #3fb950;
+}
 
-.markdown-alert-important { border-left-color: #8250df; }
-[data-bs-theme="dark"] .markdown-alert-important { border-left-color: #ab7df8; }
-.markdown-alert-important .markdown-alert-title { color: #8250df; }
-[data-bs-theme="dark"] .markdown-alert-important .markdown-alert-title { color: #ab7df8; }
+.markdown-alert-important {
+  border-left-color: #8250df;
+}
+[data-bs-theme="dark"] .markdown-alert-important {
+  border-left-color: #ab7df8;
+}
+.markdown-alert-important .markdown-alert-title {
+  color: #8250df;
+}
+[data-bs-theme="dark"] .markdown-alert-important .markdown-alert-title {
+  color: #ab7df8;
+}
 
-.markdown-alert-warning { border-left-color: #9a6700; }
-[data-bs-theme="dark"] .markdown-alert-warning { border-left-color: #d29922; }
-.markdown-alert-warning .markdown-alert-title { color: #9a6700; }
-[data-bs-theme="dark"] .markdown-alert-warning .markdown-alert-title { color: #d29922; }
+.markdown-alert-warning {
+  border-left-color: #9a6700;
+}
+[data-bs-theme="dark"] .markdown-alert-warning {
+  border-left-color: #d29922;
+}
+.markdown-alert-warning .markdown-alert-title {
+  color: #9a6700;
+}
+[data-bs-theme="dark"] .markdown-alert-warning .markdown-alert-title {
+  color: #d29922;
+}
 
-.markdown-alert-caution { border-left-color: #cf222e; }
-[data-bs-theme="dark"] .markdown-alert-caution { border-left-color: #f85149; }
-.markdown-alert-caution .markdown-alert-title { color: #cf222e; }
-[data-bs-theme="dark"] .markdown-alert-caution .markdown-alert-title { color: #f85149; }
+.markdown-alert-caution {
+  border-left-color: #cf222e;
+}
+[data-bs-theme="dark"] .markdown-alert-caution {
+  border-left-color: #f85149;
+}
+.markdown-alert-caution .markdown-alert-title {
+  color: #cf222e;
+}
+[data-bs-theme="dark"] .markdown-alert-caution .markdown-alert-title {
+  color: #f85149;
+}
+
+[data-bs-theme="dark"] .feedback-message {
+  color: #dbdbdb;
+}
+.feedback-message {
+  color: #010101;
+}
+
+/* Custom Tooltip */
+.has-tooltip {
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.has-tooltip .tooltip {
+  /* Position it perfectly above */
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  margin-top: -8px;
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s;
+  pointer-events: none;
+  width: max-content;
+  z-index: 1070;
+  --bs-tooltip-bg: var(--bs-body-bg);
+  --bs-tooltip-color: var(--bs-body-color);
+}
+
+.has-tooltip .tooltip-inner {
+  max-width: 350px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--bs-border-color);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  text-align: left;
+}
+
+[data-bs-theme="dark"] .has-tooltip .tooltip-inner {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.4);
+}
+
+.has-tooltip:hover .tooltip,
+.has-tooltip:active .tooltip {
+  opacity: var(--bs-tooltip-opacity, 0.9);
+  visibility: visible;
+}
+
+@keyframes autoHideTooltip {
+  0% { opacity: 0; visibility: hidden; }
+  5%, 80% { opacity: var(--bs-tooltip-opacity, 0.9); visibility: visible; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+.has-tooltip.autohide:hover .tooltip {
+  opacity: 0;
+  visibility: hidden;
+  animation: autoHideTooltip 2s forwards;
+}
+
+/* Fix for shuffle tooltip overflowing viewport on mobile */
+@media (max-width: 575px) {
+  .has-tooltip .tooltip.shuffle-tooltip {
+    left: auto;
+    right: 0;
+    transform: translate(0, -100%);
+  }
+}
+
+/* File code blocks (collapsible) */
+details.markdown-content {
+  font-weight: 300;
+  border: 1px solid #444;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+  background-color: #1e1e1e;
+  overflow: hidden;
+}
+
+details.markdown-content > summary {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  background-color: #1e1e1e;
+  color: #f8f9fa;
+  border-radius: 0.375rem 0.375rem 0 0;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.95em;
+}
+
+details.markdown-content > summary:hover {
+  background-color: #2d2d2d;
+}
+
+details.markdown-content > div.position-relative {
+  margin-top: 0;
+  background-color: #1e1e1e;
+  border-radius: 0 0 0.375rem 0.375rem;
+}
+
+details.markdown-content highlightjs-code pre {
+  margin-bottom: 0;
+}
+
+/* Download button styling */
+.button.download {
+  transform: scale(0.95);
+  opacity: 0.7;
+  z-index: 10;
+}
+
+.button.download:after {
+  content: "Download";
+  margin-left: 0.25rem;
+}
+
+.button.download:hover {
+  background-color: transparent;
+  opacity: 1;
+  border: solid 1px gray;
+}

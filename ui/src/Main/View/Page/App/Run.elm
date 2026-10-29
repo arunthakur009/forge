@@ -1,7 +1,7 @@
 module Main.View.Page.App.Run exposing (..)
 
 import Html exposing (Html, a, br, button, details, div, h5, hr, li, p, small, span, summary, text, ul)
-import Html.Attributes exposing (attribute, class, href, id, style, tabindex, target)
+import Html.Attributes exposing (attribute, class, href, id, style, tabindex, target, title)
 import Html.Events exposing (stopPropagationOn)
 import Json.Decode as Decode
 import Main.Config exposing (..)
@@ -112,13 +112,23 @@ viewPageAppRunInstructions model pageApp =
             Just appRuntime ->
                 [ viewPageAppRunNixInstall model pageApp
                 , hr [] []
-                , ul
-                    [ class "nav nav-underline mb-1"
+                , div [ class "d-flex justify-content-between align-items-center mb-2" ]
+                    [ ul
+                        [ class "nav nav-underline"
+                        ]
+                        (listPreferencesInstall
+                            |> List.map (viewPageAppRunNixInstallPreferences model pageApp)
+                        )
+                    , a
+                        [ href ("docs/manuals/contributor/how_to/app_recipe.html#" ++ (showAppRuntime appRuntime |> String.toLower) ++ "-runtime")
+                        , class "d-flex align-items-center gap-1 text-decoration-none"
+                        , target "_blank"
+                        , title "Runtime Documentation"
+                        ]
+                        [ iconBookHalf
+                        , text "Docs"
+                        ]
                     ]
-                    (listPreferencesInstall
-                        |> List.map (viewPageAppRunNixInstallPreferences model pageApp)
-                    )
-                , br [] []
                 , case appRuntime of
                     AppRuntime_Program ->
                         if pageApp.pageApp_app.app_programs.appPrograms_runtimes.appProgramsRuntimes_program.enable then
@@ -431,52 +441,6 @@ viewPageAppRunNixOS model pageApp =
                         -- and it defaults to `nixos:networking.hostName` which is set to `app.name` by the forge,
                         -- hence use `app_name` not `app_outputName` here.
                         , "./result/bin/run-" ++ pageApp.pageApp_app.app_name ++ "-vm"
-                        ]
-        , hr [] []
-        , viewPageAppRunNixOSModule model pageApp
-        ]
-
-
-viewPageAppRunNixOSModule : Model -> PageApp -> Html Update
-viewPageAppRunNixOSModule model pageApp =
-    details []
-        [ summary [] [ text "Enable module in a NixOS configuration" ]
-        , br [] []
-        , nixCodeBlock <|
-            case model.model_preferences.preferences_install of
-                PreferencesInstall_NixFlakes ->
-                    String.join "\n"
-                        [ "{"
-                        , "  inputs.forge.url = \"" ++ showForgeInputFlakesLatest model ++ "\";"
-                        , ""
-                        , "  outputs = { nixpkgs, forge, ... }: {"
-                        , "    nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {"
-                        , "      modules = ["
-                        , "        forge.packages.${system}." ++ pageApp.pageApp_app.app_outputName ++ ".nixosModules.default"
-                        , "        # ..."
-                        , "      ];"
-                        , "    };"
-                        , "  };"
-                        , "}"
-                        ]
-
-                PreferencesInstall_NixTraditional ->
-                    let
-                        forgeUrl =
-                            (model.model_config.config_repository |> showNixUrl) ++ "/archive/" ++ commit ++ ".tar.gz"
-                    in
-                    String.join "\n"
-                        [ "{ config, pkgs, ... }:"
-                        , ""
-                        , "let"
-                        , "  forge-url = \"" ++ forgeUrl ++ "\";"
-                        , "  forge = import \"${builtins.fetchTarball forge-url}\" { inherit pkgs; };"
-                        , "in {"
-                        , "  imports = ["
-                        , "    apps." ++ pageApp.pageApp_app.app_outputName ++ ".nixosModules.default"
-                        , "  ];"
-                        , "  # ..."
-                        , "}"
                         ]
         ]
 

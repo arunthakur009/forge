@@ -3,7 +3,7 @@
 ::: {important}
 For the list of all available configuration options for application recipes,
 see the
-[application options reference](https://ngi-nix.github.io/forge/recipe/options?s=apps).
+[application options reference](https://ngi.nixos.org/recipe/options?s=apps).
 :::
 
 Before writing a recipe, spend some time understanding the software:
@@ -53,12 +53,16 @@ Start the recipe with the following content:
       echo "with syntax highlighting"
       ```
     '';
-  };
 
-  # More configuration to be added here.
-  # ...
+    # More configuration to be added here.
+    # ...
+  };
 }
 ````
+
+::: {important}
+Ensure that the remainder of the application recipe is done within the `apps.app-name` block to avoid nasty infinite recursion errors.
+:::
 
 ### Links
 
@@ -302,10 +306,12 @@ services = {
 
 ### Additional resources
 
-Additional resources required by a service - such as a database or reverse proxy
+Additional resources required by services - such as a database or reverse proxy
 can be configured using the `resources` option.
 
-Resources can be shared between multiple components.
+Resources are shared by all service components. By default, a resource has
+the `backend` role and starts before the components. A resource with the
+`frontend` role, such as a reverse proxy, starts after the components.
 
 ```nix
 services = {
@@ -313,16 +319,27 @@ services = {
     ...
     process.command = pkgs.my-service;
     ...
+  };
 
-    resources.database.nixosConfig = {
-      services.postgresql.enable = true;
-    };
+  resources.database.nixosConfig = {
+    services.postgresql.enable = true;
+  };
 
-    resources.reverse-proxy.nixosConfig = {
+  resources.reverse-proxy = {
+    role = "frontend";
+    ports = [ "8080:8080" ];
+    nixosConfig = {
       services.nginx.enable = true;
     };
   };
 };
+```
+
+Resources are enabled by default. A resource can be disabled, for example when
+the application should use an external database instead:
+
+```nix
+services.resources.database.enable = false;
 ```
 
 ### Runtimes
@@ -562,6 +579,24 @@ Run service test:
 nix build .#apps.<app-name>.test-services-container --print-build-logs
 nix build .#apps.<app-name>.test-services-nixos --print-build-logs
 ```
+
+## Re-exporting packages
+
+If exposing a package already in nixpkgs, consider re-exporting the package using the new [`build.identityBuilder`](https://ngi.nixos.org/recipe/options?p=apps&p=pkgs&q=identi#pkgs.%3Cname%3E.build.identityBuilder.enable). This will allow the application to be accessed under the `pkgs` attribute path (i.e. `pkgs.<app-name>`). To do this, outside of the `apps.<app-name>` attribute set, add the following block:
+
+```nix
+pkgs.<app-name> = {
+  build.identityBuilder = {
+    enable = true;
+    derivation = pkgs.pkgsOriginal.<app-name>;
+  };
+};
+```
+
+::: {note}
+`pkgs.pkgsOriginal` will always provide packages from the original source of the `pkgs` attribute set (nixpkgs in almost in all cases).
+This is to clearly differentiate between packages provided in the forge (in `recipes/pkgs`), and packages from the original `pkgs`.
+:::
 
 ## Examples
 

@@ -87,6 +87,36 @@ renderer =
         | codeBlock =
             \block ->
                 block |> codeBlock
+        , link =
+            \link content ->
+                let
+                    isExternal =
+                        String.startsWith "http" link.destination
+
+                    baseAttrs =
+                        if isExternal then
+                            [ Html.Attributes.target "_blank"
+                            , Html.Attributes.rel "noopener"
+                            ]
+
+                        else
+                            []
+
+                    linkAttrs =
+                        Html.Attributes.href link.destination
+                            :: onClickStopPropagation
+                            :: baseAttrs
+                in
+                case link.title of
+                    Just title ->
+                        Html.a
+                            (Html.Attributes.title title :: linkAttrs)
+                            content
+
+                    Nothing ->
+                        Html.a
+                            linkAttrs
+                            content
         , orderedList =
             \startingIndex items ->
                 case intToGfmAlert startingIndex of

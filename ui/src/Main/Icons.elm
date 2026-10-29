@@ -162,6 +162,26 @@ iconInfoCircle =
         ]
 
 
+iconDownload : Html msg
+iconDownload =
+    svg
+        [ width "16"
+        , height "16"
+        , fill "currentColor"
+        , class "bi bi-download"
+        , viewBox "0 0 16 16"
+        ]
+        [ path
+            [ d "M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+            ]
+            []
+        , path
+            [ d "M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+            ]
+            []
+        ]
+
+
 iconLightbulb : Html msg
 iconLightbulb =
     svg
@@ -238,6 +258,112 @@ iconExclamationOctagon =
             []
         , path
             [ d "M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"
+            ]
+            []
+        ]
+
+
+iconShuffle : Html msg
+iconShuffle =
+    svg
+        [ width "16"
+        , height "16"
+        , fill "currentColor"
+        , class "bi bi-shuffle"
+        , viewBox "0 0 16 16"
+        ]
+        [ path
+            [ fillRule "evenodd"
+            , d "M0 3.5A.5.5 0 0 1 .5 3H1c2.202 0 3.827 1.24 4.874 2.418.49.552.865 1.102 1.126 1.532.26-.43.636-.98 1.126-1.532C9.173 4.24 10.798 3 13 3v1c-1.798 0-3.173 1.01-4.126 2.082A9.6 9.6 0 0 0 7.556 8a9.6 9.6 0 0 0 1.317 1.918C9.828 10.99 11.204 12 13 12v1c-2.202 0-3.827-1.24-4.874-2.418A10.6 10.6 0 0 1 7 9.05c-.26.43-.636.98-1.126 1.532C4.827 11.76 3.202 13 1 13H.5a.5.5 0 0 1 0-1H1c1.798 0 3.173-1.01 4.126-2.082A9.6 9.6 0 0 0 6.444 8a9.6 9.6 0 0 0-1.317-1.918C4.172 5.01 2.796 4 1 4H.5a.5.5 0 0 1-.5-.5"
+            ]
+            []
+        , path
+            [ d "M13 5.466V1.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192m0 9v-3.932a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192"
+            ]
+            []
+        ]
+
+
+iconSortAlphaDown : Html msg
+iconSortAlphaDown =
+    svg
+        [ width "16"
+        , height "16"
+        , fill "currentColor"
+        , class "bi bi-sort-alpha-down"
+        , viewBox "0 0 16 16"
+        ]
+        [ path
+            [ fillRule "evenodd"
+            , d "M10.082 5.629 9.664 7H8.598l1.789-5.332h1.234L13.402 7h-1.12l-.419-1.371zm1.57-.785L11 2.687h-.047l-.652 2.157z"
+            ]
+            []
+        , path
+            [ d "M12.96 14H9.028v-.691l2.579-3.72v-.054H9.098v-.867h3.785v.691l-2.567 3.72v.054h2.645zM4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293z"
+            ]
+            []
+        ]
+
+
+iconGit : Html msg
+iconGit =
+    svg
+        [ width "16"
+        , height "16"
+        , fill "currentColor"
+        , class "bi bi-git"
+        , viewBox "0 0 16 16"
+        ]
+        [ path
+            [ d "M15.698 7.287 8.712.302a1.03 1.03 0 0 0-1.457 0l-1.45 1.45 1.84 1.84a1.223 1.223 0 0 1 1.55 1.56l1.773 1.774a1.224 1.224 0 0 1 1.267 2.025 1.226 1.226 0 0 1-2.002-1.334L8.58 5.963v4.353a1.226 1.226 0 1 1-1.008-.036V5.887a1.226 1.226 0 0 1-.666-1.608L5.093 2.465l-4.79 4.79a1.03 1.03 0 0 0 0 1.457l6.986 6.986a1.03 1.03 0 0 0 1.457 0l6.953-6.953a1.03 1.03 0 0 0 0-1.457"
+            ]
+            []
+        ]
+
+
+iconTagFill : Html msg
+iconTagFill =
+    svg
+        [ width "16"
+        , height "16"
+        , fill "currentColor"
+        , class "bi bi-tag-fill"
+        , viewBox "0 0 16 16"
+        ]
+        [ path
+            [ d "M2 1a1 1 0 0 0-1 1v4.586a1 1 0 0 0 .293.707l7 7a1 1 0 0 0 1.414 0l4.586-4.586a1 1 0 0 0 0-1.414l-7-7A1 1 0 0 0 6.586 1zm4 3.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"
+            ]
+            []
+        ]
+
+
+iconLightningChargeFill : Html msg
+iconLightningChargeFill =
+    svg
+        [ width "16"
+        , height "16"
+        , fill "currentColor"
+        , class "bi bi-lightning-charge-fill"
+        , viewBox "0 0 16 16"
+        ]
+        [ path
+            [ d "M11.251.068a.5.5 0 0 1 .227.58L9.677 6.5H13a.5.5 0 0 1 .364.843l-8 8.5a.5.5 0 0 1-.842-.49L6.323 9.5H3a.5.5 0 0 1-.364-.843l8-8.5a.5.5 0 0 1 .615-.09z"
+            ]
+            []
+        ]
+
+
+iconPeopleFill : Html msg
+iconPeopleFill =
+    svg
+        [ width "16"
+        , height "16"
+        , fill "currentColor"
+        , class "bi bi-people-fill"
+        , viewBox "0 0 16 16"
+        ]
+        [ path
+            [ d "M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"
             ]
             []
         ]

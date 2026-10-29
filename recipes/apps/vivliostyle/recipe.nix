@@ -1,9 +1,23 @@
 {
+  config,
+  forgeConfig,
   pkgs,
   ...
 }:
 
+let
+  app = config.apps.vivliostyle;
+  usageSnippets = forgeConfig.forge.snippets.usage app;
+in
+
 {
+  pkgs.vivliostyle = {
+    build.identityBuilder = {
+      enable = true;
+      derivation = pkgs.pkgsOriginal.vivliostyle;
+    };
+  };
+
   apps.vivliostyle = {
     displayName = "Vivliostyle";
     description = "CSS typesetting ecosystem for creating beautifully formatted documents using web technologies.";
@@ -12,7 +26,7 @@
 
       #### Basic Usage
 
-      First, [enter the Nix shell](app/vivliostyle#run-shell), then scaffold a new project:
+      First, ${usageSnippets.run-shell}, then scaffold a new project:
 
       ```bash
       vivliostyle create ./my-project
@@ -57,7 +71,7 @@
 
     programs = {
       mainPackage = pkgs.vivliostyle;
-      packages = with pkgs; [ vivliostyle ];
+      packages = [ pkgs.vivliostyle ];
 
       runtimes.shell.enable = true;
       runtimes.program.enable = true;

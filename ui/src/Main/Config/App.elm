@@ -3,6 +3,7 @@ module Main.Config.App exposing (..)
 import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder)
 import Main.Helpers.Json.Decode as Decode
+import Set
 
 
 type alias App =
@@ -10,6 +11,7 @@ type alias App =
     , app_outputName : AppName
     , app_displayName : String
     , app_description : String
+    , app_longDescription : String
     , app_usage : String
     , app_programs : AppPrograms
     , app_services : AppServices
@@ -17,6 +19,7 @@ type alias App =
     , app_links : AppLinks
     , app_recipePath : String
     , app_maintainers : List Maintainer
+    , app_hasIcon : Bool
     }
 
 
@@ -27,6 +30,7 @@ decodeApp =
         |> Decode.andMap (Decode.field "outputName" Decode.string)
         |> Decode.andMap (Decode.field "displayName" Decode.string)
         |> Decode.andMap (Decode.field "description" Decode.string)
+        |> Decode.andMap (Decode.field "longDescription" Decode.string)
         |> Decode.andMap (Decode.field "usage" Decode.string)
         |> Decode.andMap (Decode.field "programs" decodeAppPrograms)
         |> Decode.andMap (Decode.field "services" decodeAppServices)
@@ -34,6 +38,7 @@ decodeApp =
         |> Decode.andMap (Decode.field "links" decodeAppLinks)
         |> Decode.andMap (Decode.field "recipePath" Decode.string)
         |> Decode.andMap (Decode.field "maintainers" (Decode.list decodeMaintainer))
+        |> Decode.andMap (Decode.field "icon" (Decode.nullable Decode.string |> Decode.map (\icon -> icon /= Nothing)))
 
 
 type alias AppName =
@@ -93,39 +98,46 @@ decodeAppProgramsRuntimesShell =
 
 
 type alias AppResource =
-    { appResource_ports : List String
+    { appResource_enable : Bool
+    , appResource_ports : List String
     }
 
 
 decodeAppResource : Decoder AppResource
 decodeAppResource =
-    Decode.map AppResource
+    Decode.map2 AppResource
+        (Decode.field "enable" Decode.bool)
         (Decode.field "ports" (Decode.list Decode.string))
 
 
 type alias AppComponent =
     { appComponent_ports : List String
-    , appComponent_resources : Dict String AppResource
     }
 
 
 decodeAppComponent : Decoder AppComponent
 decodeAppComponent =
-    Decode.map2 AppComponent
+    Decode.map AppComponent
         (Decode.field "process" (Decode.field "ports" (Decode.list Decode.string)))
-        (Decode.field "resources" (Decode.dict decodeAppResource))
 
 
 type alias AppServices =
     { appServices_components : Dict String AppComponent
+    , appServices_resources : Dict String AppResource
     , appServices_runtimes : AppServicesRuntimes
     }
 
 
 decodeAppServices : Decoder AppServices
 decodeAppServices =
-    Decode.map2 AppServices
+    Decode.map3 AppServices
         (Decode.field "components" (Decode.dict decodeAppComponent))
+        -- Keep only enabled resources
+        (Decode.field "resources"
+            (Decode.dict decodeAppResource
+                |> Decode.map (Dict.filter (\_ resource -> resource.appResource_enable))
+            )
+        )
         (Decode.field "runtimes" decodeAppServicesRuntimes)
 
 
@@ -279,7 +291,23 @@ showAppRuntime r =
             "Container"
 
         AppRuntime_NixOS ->
-            "NixOS"
+            "NixOS VM"
+
+
+showAppRuntimeDescription : AppRuntime -> String
+showAppRuntimeDescription r =
+    case r of
+        AppRuntime_Program ->
+            "Run application natively on your system"
+
+        AppRuntime_Shell ->
+            "Run application within a shell environment"
+
+        AppRuntime_Container ->
+            "Run application in an OCI container"
+
+        AppRuntime_NixOS ->
+            "Run application in a NixOS system"
 
 
 type alias AppLinks =
@@ -337,16 +365,29 @@ deduplicate =
 
 getAppServicesPorts : AppServices -> List String
 getAppServicesPorts services =
-    services.appServices_components
-        |> Dict.toList
-        |> List.concatMap
-            (\( _, component ) ->
-                component.appComponent_ports
-                    ++ (component.appComponent_resources
-                            |> Dict.toList
-                            |> List.concatMap (Tuple.second >> .appResource_ports)
-                       )
-            )
+    (services.appServices_components
+        |> Dict.values
+        |> List.concatMap .appComponent_ports
+    )
+        ++ (services.appServices_resources
+                |> Dict.values
+                |> List.concatMap .appResource_ports
+           )
+
+
+{-| Ports which need to be open in the firewall of a machine running the services.
+
+Ports are in format HOST\_PORT:SERVICE\_PORT,
+services listen on SERVICE\_PORT on the deployed machine.
+
+-}
+getAppServicesFirewallPorts : AppServices -> List Int
+getAppServicesFirewallPorts services =
+    services
+        |> getAppServicesPorts
+        |> List.filterMap (String.split ":" >> List.drop 1 >> List.head >> Maybe.andThen String.toInt)
+        |> Set.fromList
+        |> Set.toList
 
 
 type alias Maintainer =

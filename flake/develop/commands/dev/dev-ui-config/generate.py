@@ -20,7 +20,8 @@ def generate_grants():
     return grants
 
 
-def generate_pkg_recipe(name, index):
+def generate_pkg_recipe(name, index, is_test_pkg=False):
+    description = fake.sentence()
     return f"""{{
   config,
   lib,
@@ -30,7 +31,7 @@ def generate_pkg_recipe(name, index):
 {{
 pkgs."{name}" = {{
   version = "0.0.{index}";
-  description = "{fake.sentence()}";
+  description = "{description}";
   homePage = "{fake.url()}";
   mainProgram = "{name}";
   license = lib.licenses.mit;
@@ -70,7 +71,7 @@ def generate_app_recipe(name, index, is_test_app=False):
 {{
 apps."{name}" = {{
   description = "{fake.sentence()}";
-  usage = "{fake.text()}";
+  usage = "{fake.text()}\n\n[project documentation](https://example.com)\n\n[enter the Nix shell](app/mock-test#run-shell)";
 
   links = {{
     website = "{fake.url()}";
@@ -163,7 +164,7 @@ def main():
         test_pkg_name = "mock-test-pkg"
         (pkgs_dir / test_pkg_name).mkdir(parents=True)
         with open(pkgs_dir / test_pkg_name / "recipe.nix", "w") as f:
-            f.write(generate_pkg_recipe(test_pkg_name, 0))
+            f.write(generate_pkg_recipe(test_pkg_name, 0, is_test_pkg=True))
 
         for i in range(num_pkgs):
             pkg_name = f"mock-pkg-{i}"

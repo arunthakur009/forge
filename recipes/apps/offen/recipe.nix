@@ -1,29 +1,46 @@
 {
+  config,
   pkgs,
   ...
 }:
 
+let
+  app = config.apps.offen;
+in
 {
   apps.offen = {
     displayName = "Offen";
     description = "Fair and privacy-focused web analytics.";
-    usage = ''
+    longDescription = ''
       Offen is a self-hosted web analytics server that gives operators insight
-      into usage while allowing users to access, review, and delete their own data.
-
-      #### Access
-
-      Open the Offen interface at [http://localhost:3000](http://localhost:3000).
+      into usage while allowing users to access, review, and delete their own
+      data.
+    '';
+    usage = ''
+      First, launch the app [in a container](app/${app.name}#run-container) or
+      [in a NixOS VM](app/${app.name}#run-nixos).
 
       #### Initial Setup
 
-      Create an account on first run:
+      1. Enter the running container
+
+      ```bash
+      podman exec -it offen_offen_1 bash
+      ```
+
+      or log in to the NixOS VM (the console logs in automatically as root).
+
+      2. Create an operator account
 
       ```bash
       export OFFEN_DATABASE_CONNECTIONSTRING="/var/lib/offen/offen.db"
       offen setup -name <account-name> -email <email> -password <password>
       ```
 
+      #### Web Interface
+
+      Open the [web interface](http://localhost:8080) and log in as
+      the operator using the account created in the previous step.
     '';
 
     links = {
@@ -50,7 +67,41 @@
           OFFEN_DATABASE_DIALECT = "sqlite3";
           OFFEN_DATABASE_CONNECTIONSTRING = "/var/lib/offen/offen.db";
         };
-        process.ports = [ "3000:3000" ];
+
+        healthcheck = {
+          enable = true;
+          test = [
+            "curl"
+            "-fs"
+            "http://offen:3000/healthz"
+          ];
+          packages = [ pkgs.curl ];
+          interval = "3s";
+          timeout = "3s";
+          startPeriod = "10s";
+          retries = 10;
+        };
+      };
+
+      resources.reverse-proxy = {
+        role = "frontend";
+        ports = [ "8080:8080" ];
+        nixosConfig = {
+          services.nginx = {
+            enable = true;
+            recommendedProxySettings = true;
+            virtualHosts.offen = {
+              default = true;
+              listen = [
+                {
+                  addr = "0.0.0.0";
+                  port = 8080;
+                }
+              ];
+              locations."/".proxyPass = "http://offen:3000";
+            };
+          };
+        };
       };
 
       runtimes = {
@@ -74,12 +125,16 @@
       };
     };
 
-    test.services.script = ''
-      curl="curl --retry 5 --retry-max-time 120 --retry-all-errors"
+    test.services = {
+      packages = [ pkgs.offen ];
+      script = ''
+        curl="curl --retry 5 --retry-max-time 120 --retry-all-errors"
 
-      export OFFEN_DATABASE_CONNECTIONSTRING="/var/lib/offen/offen.db"
-      offen setup -name test -email test@localhost -password test123456
-      $curl localhost:3000 | grep "Offen Fair Web Analytics"
-    '';
+        mkdir --parent /var/lib/offen
+        export OFFEN_DATABASE_CONNECTIONSTRING="/var/lib/offen/offen.db"
+        offen setup -name test -email test@localhost -password test123456
+        $curl localhost:8080 | grep "Offen Fair Web Analytics"
+      '';
+    };
   };
 }

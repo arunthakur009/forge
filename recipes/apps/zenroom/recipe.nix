@@ -1,28 +1,46 @@
 {
+  config,
+  forgeConfig,
   pkgs,
   lib,
   ...
 }:
 
+let
+  app = config.apps.zenroom;
+  usageSnippets = forgeConfig.forge.snippets.usage app;
+in
+
 {
+  pkgs.zenroom = {
+    build.identityBuilder = {
+      enable = true;
+      derivation = pkgs.pkgsOriginal.zenroom;
+    };
+  };
   apps.zenroom = {
     displayName = "Zenroom";
     description = "No-code cryptographic virtual machine.";
+
+    data = {
+      arrayGenerator = ./test/arrayGenerator.zen;
+    };
+
     usage = ''
       Zenroom is a tiny and portable virtual machine that integrates in any application to authenticate and restrict access to data and execute human-readable smart contracts.
 
       #### Basic Usage
 
-      First, write the following script into a local file (e.g. `arrayGenerator.zen`):
+      First, write the following script into a local file (e.g. `${app.data.arrayGenerator.name}`):
 
       ```
-      ${lib.readFile ./test/arrayGenerator.zen}
+      ${app.data.arrayGenerator}
       ```
 
-      Then, [enter the Nix shell](app/zenroom#run-shell) and execute the script:
+      Then, ${usageSnippets.run-shell} and execute the script:
 
       ```bash
-      zenroom -z arrayGenerator.zen | tee myFirstRandomArray.json
+      zenroom -z ${app.data.arrayGenerator.name} | tee myFirstRandomArray.json
       ```
 
       The result should be printed in the terminal and also in the `myFirstRandomArray.json` file.
@@ -44,14 +62,14 @@
 
     programs = {
       mainPackage = pkgs.zenroom;
-      packages = with pkgs; [ zenroom ];
+      packages = [ pkgs.zenroom ];
 
       runtimes.shell.enable = true;
       runtimes.program.enable = true;
     };
 
     test.programs.script = ''
-      zenroom -z ${./test/arrayGenerator.zen}
+      zenroom -z ${app.data.arrayGenerator.path}
     '';
   };
 }

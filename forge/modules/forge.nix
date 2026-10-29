@@ -37,14 +37,33 @@
             (import "${forge-inputs.nixpkgs}/maintainers/maintainer-list.nix")
             // lib.foldl' (acc: path: acc // import path) { } config.forge.maintainerLists;
         };
+        getTestOptions =
+          config: type:
+          lib.types.submodule (
+            lib.modules.importApply ./test-options.nix {
+              inherit config type;
+            }
+          );
       };
       modules = [
         {
           options = {
+            enable = lib.mkOption {
+              type = lib.types.bool;
+              default = false;
+              description = ''
+                Whether to expose applications and packages by default in flake's `packages`.
+                If set it also expose internal packages within `_forge` in `packages`.
+              '';
+            };
             maintainerLists = lib.mkOption {
               type = lib.types.listOf lib.types.path;
-              default = [ ];
-              description = "Paths to maintainer list files in the format of Nixpkgs maintainer-list.nix.";
+              default = [ forge-inputs.self.maintainerList ];
+              defaultText = lib.literalExpression "[ inputs.ngi-forge.maintainerList ]";
+              description = ''
+                Paths to files containing a list of Forge maintainers.
+                Each file must follow the format of the
+                [Nixpkgs maintainer-list.nix file](https://github.com/NixOS/nixpkgs/blob/master/maintainers/maintainer-list.nix).'';
               example = lib.literalExpression ''
                 [ inputs.ngi-forge.maintainerList
                 ./maintainers/maintainer-list.nix ]
@@ -55,7 +74,14 @@
               type = lib.types.str;
               default = "github:ngi-nix/forge";
               example = "github:ngi-nix/forge";
-              description = "URL of the flake repository.";
+              description = "URL of the Forge repository.";
+            };
+
+            snippets = lib.mkOption {
+              readOnly = true;
+              type = lib.types.submodule ./snippets.nix;
+              default = { };
+              description = "Re-usable snippets in Markdown format.";
             };
           };
         }

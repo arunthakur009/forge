@@ -1,10 +1,14 @@
 module Main.View.Page.Apps exposing (..)
 
+import Dict
 import Html exposing (Html, a, div, h5, img, p, small, span, text)
-import Html.Attributes exposing (attribute, class, href, src, style)
+import Html.Attributes exposing (attribute, class, href, src, style, title)
+import Html.Events exposing (custom, preventDefaultOn, stopPropagationOn)
+import Json.Decode as Decode
 import Main.Config exposing (..)
 import Main.Config.App exposing (..)
 import Main.Helpers.Html exposing (..)
+import Main.Helpers.List as List
 import Main.Helpers.Nix exposing (..)
 import Main.Icons exposing (..)
 import Main.Model exposing (..)
@@ -19,19 +23,75 @@ import Main.View.Pagination exposing (PaginationVisibility(..), viewPaginationIt
 
 viewPageApps : Model -> PageApps -> Html Update
 viewPageApps model pageApps =
-    viewPageAppsPagination
-        pageApps.pageApps_pagination
-        (viewPageAppsApp model pageApps)
-        (\modifyRoutePagination ->
-            let
-                routeApps =
-                    pageApps.pageApps_route
-            in
-            Route_Apps
-                { routeApps
-                    | routeApps_pagination = routeApps.routeApps_pagination |> modifyRoutePagination
-                }
-        )
+    let
+        reRoute =
+            \modifyRoutePagination ->
+                let
+                    routeApps =
+                        pageApps.pageApps_route
+                in
+                Route_Apps
+                    { routeApps
+                        | routeApps_pagination = routeApps.routeApps_pagination |> modifyRoutePagination
+                    }
+    in
+    div []
+        [ div
+            [ style "display" "grid"
+            , style "grid-template-columns" "1fr auto 1fr"
+            , class "align-items-center my-2"
+            ]
+            [ div [ class "d-flex justify-content-start align-items-center gap-2" ]
+                [ viewAppsCount model pageApps
+                , viewSortDropdown model pageApps
+                ]
+            , viewPaginationNavigation PaginationVisibility_HiddenIfSinglePage pageApps.pageApps_pagination reRoute
+            , text ""
+            ]
+        , viewPageAppsPagination
+            pageApps.pageApps_pagination
+            (viewPageAppsApp model pageApps)
+            reRoute
+        , let
+            nextPageApps =
+                pageApps.pageApps_pagination.pagePagination_list
+                    |> List.at pageApps.pageApps_pagination.pagePagination_current
+                    |> Maybe.withDefault []
+          in
+          div [ style "display" "none" ]
+            (List.map
+                (\app ->
+                    (if app.app_hasIcon then
+                        img
+
+                     else
+                        Html.node "avatar-icon"
+                    )
+                        ([ attribute "data-display-name" app.app_displayName
+                         , attribute "data-app-name" app.app_name
+                         ]
+                            ++ (if app.app_hasIcon then
+                                    [ src (getAppIconPath app.app_name) ]
+
+                                else
+                                    []
+                               )
+                        )
+                        []
+                )
+                nextPageApps
+            )
+        ]
+
+
+viewAppsCount : Model -> PageApps -> Html Update
+viewAppsCount model pageApps =
+    viewCountWidget
+        { total = Dict.size model.model_config.config_apps
+        , filtered = pageApps.pageApps_pagination.pagePagination_list |> List.concat |> List.length
+        , noun = "applications"
+        , testId = "apps-count-badge"
+        }
 
 
 viewPageAppsPagination : PagePagination a -> (a -> Html Update) -> ((RoutePagination -> RoutePagination) -> Route) -> Html Update
@@ -48,58 +108,191 @@ viewPageAppsApp _ _ app =
         onClickRoute =
             Route_App { defaultRouteApp | routeApp_name = app.app_name }
     in
-    a
-        [ href (onClickRoute |> routeToString)
-        , class "card m-item-card shadow-sm p-3"
-        , style "text-decoration" "none"
+    div
+        [ class "card m-item-card shadow-sm p-2 p-sm-3 h-100 d-flex flex-column"
         , attribute "data-testid" "app-result"
         , onClick (Update_Route onClickRoute)
+        , style "cursor" "pointer"
         ]
         [ div
-            [ class "w-100"
-            , style "display" "flex"
-            , style "align-items" "center"
-            , style "gap" "12px"
+            [ class "d-flex flex-column align-items-center w-100"
             ]
-            [ img
-                [ src (getAppIconPath app.app_name)
-                , class "item-card-icon"
-                , attribute "loading" "lazy"
-                , attribute "alt" (app.app_displayName ++ " icon")
-                ]
-                []
-            , h5 [ class "mb-10" ] [ text app.app_displayName ]
-            ]
-        , p
-            [ class "mb-1 text-body-secondary m-item-card-description"
-            ]
-            [ text app.app_description ]
-        , p
-            [ class "mb-1"
-            ]
-            [ small []
-                (List.concat
-                    [ if app.app_programs.appPrograms_runtimes.appProgramsRuntimes_program.enable then
-                        [ span [ class "badge bg-primary me-1", style "font-size" "0.85em" ] [ text "program" ] ]
+            [ (if app.app_hasIcon then
+                img
 
-                      else
-                        []
-                    , if app.app_programs.appPrograms_runtimes.appProgramsRuntimes_shell.enable then
-                        [ span [ class "badge bg-primary me-1", style "font-size" "0.85em" ] [ text "shell" ] ]
+               else
+                Html.node "avatar-icon"
+              )
+                ([ class "item-card-icon mb-2"
+                 , attribute "alt" (app.app_displayName ++ " icon")
+                 , attribute "data-display-name" app.app_displayName
+                 , attribute "data-app-name" app.app_name
+                 ]
+                    ++ (if app.app_hasIcon then
+                            [ src (getAppIconPath app.app_name) ]
 
-                      else
-                        []
-                    , if app.app_services.appServices_runtimes.appServicesRuntimes_container.enable then
-                        [ span [ class "badge bg-primary me-1", style "font-size" "0.85em" ] [ text "container" ] ]
-
-                      else
-                        []
-                    , if app.app_services.appServices_runtimes.appServicesRuntimes_nixos.enable then
-                        [ span [ class "badge bg-primary me-1", style "font-size" "0.85em" ] [ text "nixos" ] ]
-
-                      else
-                        []
-                    ]
+                        else
+                            []
+                       )
                 )
+                []
+            , h5 [ class "mb-1 fw-bold item-card-title text-center text-truncate w-100 px-2" ]
+                [ a
+                    [ href (onClickRoute |> routeToString)
+                    , class "text-decoration-none"
+                    , style "color" "inherit"
+
+                    -- FIX: Custom click handler stops the Elm text-selection bug from hard-reloading
+                    , custom "click"
+                        (Decode.succeed
+                            { message = Update_Route onClickRoute
+                            , stopPropagation = True
+                            , preventDefault = True
+                            }
+                        )
+                    , attribute "draggable" "false"
+                    ]
+                    [ text app.app_displayName ]
+                ]
             ]
+        , div
+            [ class "flex-grow-1 d-flex align-items-center w-100 my-2" ]
+            [ p
+                [ class "mb-0 text-body-secondary m-item-card-description text-center w-100"
+
+                -- FIX: Allow single clicks to bubble, but stop double clicks.
+                -- Note: Drags/holds are caught by the global JS interceptor in main.js.
+                , custom "click"
+                    (Decode.field "detail" Decode.int
+                        |> Decode.andThen
+                            (\detail ->
+                                Decode.succeed
+                                    { message = Update_Chain []
+                                    , stopPropagation = detail > 1
+                                    , preventDefault = False
+                                    }
+                            )
+                    )
+                ]
+                [ text app.app_description ]
+            ]
+        , div
+            [ class "d-flex flex-wrap justify-content-center align-items-center gap-1 w-100 mt-auto"
+            ]
+            (List.concat
+                [ if app.app_programs.appPrograms_runtimes.appProgramsRuntimes_program.enable then
+                    [ viewRuntimeBadge AppRuntime_Program ]
+
+                  else
+                    []
+                , if app.app_programs.appPrograms_runtimes.appProgramsRuntimes_shell.enable then
+                    [ viewRuntimeBadge AppRuntime_Shell ]
+
+                  else
+                    []
+                , if app.app_services.appServices_runtimes.appServicesRuntimes_container.enable then
+                    [ viewRuntimeBadge AppRuntime_Container ]
+
+                  else
+                    []
+                , if app.app_services.appServices_runtimes.appServicesRuntimes_nixos.enable then
+                    [ viewRuntimeBadge AppRuntime_NixOS ]
+
+                  else
+                    []
+                ]
+            )
+        ]
+
+
+viewSortDropdown : Model -> PageApps -> Html Update
+viewSortDropdown model pageApps =
+    div [ class "d-flex justify-content-start align-items-center gap-2" ]
+        [ div [ class "dropdown" ]
+            [ Html.button
+                [ class "btn btn-sm border text-body dropdown-toggle"
+                , attribute "type" "button"
+                , attribute "data-testid" "sort-dropdown-button"
+                , onClick Update_ToggleAppsSortDropdown
+                ]
+                [ Html.text <|
+                    case model.model_preferences.preferences_sort of
+                        PreferencesSort_Random ->
+                            "Sort: Random"
+
+                        PreferencesSort_Alphabetical ->
+                            "Sort: Alphabetical"
+                ]
+            , Html.ul
+                [ class <|
+                    "dropdown-menu dropdown-menu-end shadow"
+                        ++ (if model.model_appsSortDropdownOpen then
+                                " show"
+
+                            else
+                                ""
+                           )
+                ]
+                [ Html.li []
+                    [ Html.button
+                        [ class "dropdown-item d-flex align-items-center gap-2"
+                        , attribute "data-testid" "sort-dropdown-option-random"
+                        , onClick
+                            (Update_Chain
+                                [ Update_SetPreferences
+                                    { preferences_install = model.model_preferences.preferences_install
+                                    , preferences_theme = model.model_preferences.preferences_theme
+                                    , preferences_sort = PreferencesSort_Random
+                                    }
+                                , Update_ToggleAppsSortDropdown
+                                , Update_RouteWithoutHistory (Route_Apps pageApps.pageApps_route)
+                                ]
+                            )
+                        ]
+                        [ Main.Icons.iconShuffle, Html.text "Random" ]
+                    ]
+                , Html.li []
+                    [ Html.button
+                        [ class "dropdown-item d-flex align-items-center gap-2"
+                        , attribute "data-testid" "sort-dropdown-option-alphabetical"
+                        , onClick
+                            (Update_Chain
+                                [ Update_SetPreferences
+                                    { preferences_install = model.model_preferences.preferences_install
+                                    , preferences_theme = model.model_preferences.preferences_theme
+                                    , preferences_sort = PreferencesSort_Alphabetical
+                                    }
+                                , Update_ToggleAppsSortDropdown
+                                , Update_RouteWithoutHistory (Route_Apps pageApps.pageApps_route)
+                                ]
+                            )
+                        ]
+                        [ Main.Icons.iconSortAlphaDown, Html.text "Alphabetical" ]
+                    ]
+                ]
+            ]
+        , if model.model_preferences.preferences_sort == PreferencesSort_Random then
+            div [ class "has-tooltip autohide d-inline-block" ]
+                [ Html.button
+                    [ class "btn btn-sm border text-body"
+                    , attribute "type" "button"
+                    , attribute "data-testid" "sort-shuffle-button"
+                    , onClick
+                        (Update_Chain
+                            [ Update_ShuffleApps
+                            , Update_RouteWithoutHistory (Route_Apps pageApps.pageApps_route)
+                            ]
+                        )
+                    ]
+                    [ Main.Icons.iconShuffle ]
+                , div
+                    [ class "tooltip bs-tooltip-top shuffle-tooltip"
+                    , attribute "role" "tooltip"
+                    ]
+                    [ div [ class "tooltip-inner" ] [ Html.text "Shuffle apps (order resets on reload)" ]
+                    ]
+                ]
+
+          else
+            Html.text ""
         ]

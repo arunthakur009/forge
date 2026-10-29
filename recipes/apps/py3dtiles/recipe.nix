@@ -3,6 +3,20 @@
   ...
 }:
 {
+  pkgs.py3dtiles = {
+    build.identityBuilder = {
+      enable = true;
+      derivation = pkgs.pkgsOriginal.python3Packages.toPythonApplication pkgs.python3-py3dtiles;
+    };
+  };
+
+  pkgs.python3-py3dtiles = {
+    build.identityBuilder = {
+      enable = true;
+      derivation = pkgs.pkgsOriginal.python3.pkgs.py3dtiles;
+    };
+  };
+
   apps.py3dtiles = {
     displayName = "Py3DTiles";
     description = "Python module and CLI to create 3DTiles from various 3D geo-referenced data types and formats.";
@@ -47,7 +61,7 @@
       packages = [
         pkgs.py3dtiles
         (pkgs.python3.withPackages (pp: [
-          pp.py3dtiles
+          pkgs.python3-py3dtiles
         ]))
       ];
       runtimes.shell.enable = true;

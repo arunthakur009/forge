@@ -50,7 +50,7 @@
             inherit inputs;
           }
           (flakeArgs: {
-            # Uncomment this to enable flake-parts debug.
+            # Uncomment this to enable debug attributes of this flake.
             # https://flake.parts/options/flake-parts.html?highlight=debug#opt-debug
             # debug = true;
 
@@ -82,8 +82,13 @@
               { system, ... }:
               {
                 forge = {
+                  # Expose all `apps` and `pkgs` entries in `packages`,
+                  # it's not done by `flakeModules.default`
+                  # to not overload `nix flake {show,check}`
+                  # when consuming the flake, eg. when deploying an app.
+                  enable = true;
+
                   repositoryUrl = self.sourceInfo.url or "github:ngi-nix/forge";
-                  maintainerLists = [ self.maintainerList ];
                 };
               };
           });

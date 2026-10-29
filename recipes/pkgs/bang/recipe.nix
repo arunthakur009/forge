@@ -13,15 +13,15 @@ let
 in
 {
   pkgs.bang = {
-    version = "0-unstable-2026-06-21";
+    version = "0-unstable-2026-10-16";
     description = "Binary Analysis Next Generation framework for recursive unpacking and analysis of binary files.";
     homePage = "https://github.com/armijnhemel/binaryanalysis-ng";
     mainProgram = "bang";
     license = lib.licenses.gpl3Only;
 
     source = {
-      git = "github:armijnhemel/binaryanalysis-ng/19570ae9156878076b10d11c4fec44d3beb27785";
-      hash = "sha256-TAzUquGDT6yZcZ2/KAMLYi2EMnbt/1k7mfoF2apkoAI=";
+      git = "github:armijnhemel/binaryanalysis-ng/9b660c6640fe7fcb38b6272df5261b6320015dae";
+      hash = "sha256-obuQotYTCqTr9UE1bPm9xovsUjk6T3pxQ3E0ABeouQo=";
     };
 
     build.pythonAppBuilder = {
@@ -83,17 +83,6 @@ in
         # pytest is incorrectly listed in install_requires upstream
         substituteInPlace setup.cfg \
           --replace-fail $'\tpytest\n' ""
-
-        # Python 3.14 switched the default multiprocessing start method on
-        # Linux from "fork" to "forkserver". Under "forkserver", arguments
-        # passed to Process() must be picklable, but bang's scan pipeline
-        # (built from nested closures like pipe_or/pipe_seq in scan_job.py)
-        # is not. Force "fork" explicitly to keep the existing behavior.
-        # https://github.com/armijnhemel/binaryanalysis-ng/issues/388
-        substituteInPlace src/bang/cli.py \
-          --replace-fail \
-          "multiprocessing.Process(target = process_jobs, args = (scan_pipeline, scan_environment,))" \
-          "multiprocessing.get_context('fork').Process(target = process_jobs, args = (scan_pipeline, scan_environment,))"
       '';
 
       preBuild = ''

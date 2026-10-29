@@ -100,10 +100,12 @@
               };
 
               stateDir = lib.mkOption {
-                type = lib.types.str;
+                type = lib.types.strMatching "^/var/lib/[^/].*$";
                 default = "/var/lib/${name}";
                 description = ''
                   Path to the service state directory.
+
+                  Must be located in `/var/lib/`.
                 '';
                 example = "/var/lib/myservice";
               };
@@ -133,18 +135,6 @@
         ];
       };
       description = "Process configuration.";
-    };
-
-    resources = lib.mkOption {
-      type = lib.types.attrsOf (lib.types.submodule ./resource.nix);
-      default = { };
-      description = "Resource configuration";
-      example = lib.literalExpression ''
-        {
-          database.nixosConfig = { services.postgresql.enable = true; };
-          cache.nixosConfig = { services.redis.servers.default.enable = true; };
-        }
-      '';
     };
 
     healthcheck = lib.mkOption {

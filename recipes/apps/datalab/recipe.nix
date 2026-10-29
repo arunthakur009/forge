@@ -1,10 +1,29 @@
 {
+  config,
+  forgeConfig,
   pkgs,
   lib,
   ...
 }:
 
+let
+  app = config.apps.datalab;
+  usageSnippets = forgeConfig.forge.snippets.usage app;
+in
+
 {
+  pkgs.datalab = {
+    build.identityBuilder = {
+      enable = true;
+      derivation = pkgs.pkgsOriginal.datalab;
+    };
+  };
+  pkgs.python3-datalab-platform = {
+    build.identityBuilder = {
+      enable = true;
+      derivation = pkgs.pkgsOriginal.python3.pkgs.datalab-platform;
+    };
+  };
   apps.datalab = {
     displayName = "DataLab";
     description = "Open-source Platform for Scientific and Technical Data Processing and Visualization.";
@@ -14,7 +33,7 @@
 
       #### GUI
 
-      First, [enter the Nix shell](app/datalab#run-shell), then launch the DataLab desktop application:
+      First, ${usageSnippets.run-shell}, then launch the DataLab desktop application:
 
       ```bash
       datalab
@@ -28,7 +47,7 @@
 
       #### API
 
-      First, [enter the Nix shell](app/datalab#run-shell), which provides a Python environment with DataLab already installed.
+      First, ${usageSnippets.run-shell}, which provides a Python environment with DataLab already installed.
 
       In the example below, we use a [remote proxy](https://datalab-platform.com/en/features/advanced/proxy.html#module-datalab.control.proxy) to programmatically create and display some data.
 
@@ -40,13 +59,12 @@
 
       Third, run the following script:
 
-      ```python
-      # test.py
-      ${lib.readFile ./test.py}
+      ```python file ${app.data.test.name}
+      ${app.data.test}
       ```
 
       ```bash
-      python ./test.py
+      python ./${app.data.test.name}
       ```
 
       Lastly, navigate to the DataLab GUI and you should find `my-signal` in the Signal Panel and `my-image` in the Image Panel.
@@ -55,6 +73,10 @@
     '';
 
     icon = ./icon.svg;
+
+    data = {
+      test = ./test.py;
+    };
 
     links = {
       website = "https://datalab-platform.com";
@@ -73,13 +95,9 @@
 
     programs = {
       mainPackage = pkgs.datalab;
-      packages = with pkgs; [
-        (python3.withPackages (
-          ps: with ps; [
-            datalab-platform
-          ]
-        ))
-        datalab # gui
+      packages = [
+        (pkgs.python3.withPackages (ps: [ pkgs.python3-datalab-platform ]))
+        pkgs.datalab # gui
       ];
 
       runtimes.shell.enable = true;

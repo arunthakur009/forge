@@ -18,11 +18,16 @@
       systems = [ "x86_64-linux" ];
       imports = [ inputs.ngi-forge.flakeModules.base ];
 
+      # Uncomment this to enable debug attributes of this flake.
+      # https://flake.parts/options/flake-parts.html?highlight=debug#opt-debug
+      # debug = true;
+
       perSystem =
         { system, ... }:
         {
           forge = {
             # Configuration
+            enable = true;
 
             # Set Forge repository URL
             # e.g. "github:username/my-forge"

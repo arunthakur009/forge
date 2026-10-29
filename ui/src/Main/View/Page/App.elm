@@ -2,7 +2,9 @@ module Main.View.Page.App exposing (..)
 
 import Dict
 import Html exposing (Html, a, button, div, h2, h4, h6, hr, img, li, p, small, span, text, ul)
-import Html.Attributes exposing (attribute, class, href, id, rel, src, style, tabindex, target)
+import Html.Attributes exposing (attribute, class, href, id, rel, src, style, tabindex, target, title)
+import Html.Events exposing (stopPropagationOn)
+import Json.Decode as Decode
 import Main.Config exposing (..)
 import Main.Config.App exposing (..)
 import Main.Helpers.Html exposing (..)
@@ -15,6 +17,7 @@ import Main.Model.Preferences exposing (..)
 import Main.Model.Route exposing (..)
 import Main.Update exposing (..)
 import Main.Update.Types exposing (..)
+import Main.View.Page.App.Deploy exposing (..)
 import Main.View.Page.App.Run exposing (..)
 
 
@@ -28,6 +31,8 @@ viewPageApp model pageApp =
                 , viewPageAppHeader model pageApp
                 , viewPageAppDescription model pageApp
                 , viewPageAppRun model pageApp
+                , viewPageAppDeploy model pageApp
+                , viewPageAppIconModal model pageApp
                 ]
             , div
                 [ class "col-12 col-lg-3 order-lg-first" ]
@@ -42,6 +47,13 @@ viewPageApp model pageApp =
 
 viewPageAppHeader : Model -> PageApp -> Html Update
 viewPageAppHeader _ pageApp =
+    let
+        routeApp =
+            pageApp.pageApp_route
+
+        onClickIcon =
+            Route_App { routeApp | routeApp_iconShown = True }
+    in
     div
         [ style "display" "flex"
         , style "justify-content" "space-between"
@@ -53,12 +65,26 @@ viewPageAppHeader _ pageApp =
             , style "align-items" "center"
             , style "gap" "16px"
             ]
-            [ img
-                [ src (getAppIconPath pageApp.pageApp_route.routeApp_name)
-                , class "item-header-icon"
-                , attribute "loading" "lazy"
-                , attribute "alt" (pageApp.pageApp_app.app_displayName ++ " icon")
-                ]
+            [ (if pageApp.pageApp_app.app_hasIcon then
+                img
+
+               else
+                Html.node "avatar-icon"
+              )
+                ([ class "item-header-icon"
+                 , attribute "alt" (pageApp.pageApp_app.app_displayName ++ " icon")
+                 , style "cursor" "pointer"
+                 , onClick (Update_RouteWithoutHistory onClickIcon)
+                 , attribute "data-display-name" pageApp.pageApp_app.app_displayName
+                 , attribute "data-app-name" pageApp.pageApp_route.routeApp_name
+                 ]
+                    ++ (if pageApp.pageApp_app.app_hasIcon then
+                            [ src (getAppIconPath pageApp.pageApp_route.routeApp_name) ]
+
+                        else
+                            []
+                       )
+                )
                 []
             , h2
                 [ class "mb-0 fw-bold"
@@ -68,22 +94,41 @@ viewPageAppHeader _ pageApp =
                 [ text pageApp.pageApp_app.app_displayName
                 ]
             ]
-        , button
-            [ class "btn"
-            , attribute "data-testid" "app-run-button"
-            , case pageApp.pageApp_runtime of
-                Nothing ->
-                    class "btn-secondary"
+        , div [ style "display" "flex", style "gap" "8px" ]
+            ([ button
+                [ class "btn"
+                , attribute "data-testid" "app-run-button"
+                , case pageApp.pageApp_runtime of
+                    Nothing ->
+                        class "btn-secondary"
 
-                Just _ ->
-                    class "btn-success"
-            , let
-                route =
-                    pageApp.pageApp_route
-              in
-              onClick (Update_RouteWithoutHistory (Route_App { route | routeApp_runShown = True }))
-            ]
-            [ text "Run" ]
+                    Just _ ->
+                        class "btn-success"
+                , let
+                    route =
+                        pageApp.pageApp_route
+                  in
+                  onClick (Update_RouteWithoutHistory (Route_App { route | routeApp_runShown = True }))
+                ]
+                [ text "Run" ]
+             ]
+                ++ (if pageApp.pageApp_app.app_services.appServices_runtimes.appServicesRuntimes_nixos.enable then
+                        [ button
+                            [ class "btn btn-success"
+                            , attribute "data-testid" "app-deploy-button"
+                            , let
+                                route =
+                                    pageApp.pageApp_route
+                              in
+                              onClick (Update_RouteWithoutHistory (Route_App { route | routeApp_deployShown = True }))
+                            ]
+                            [ text "Deploy" ]
+                        ]
+
+                    else
+                        []
+                   )
+            )
         ]
 
 
@@ -93,12 +138,16 @@ viewPageAppFeedback model =
         text ""
 
     else
-        div [ class "alert alert-info alert-dismissible mt-3", attribute "data-testid" "feedback-message" ]
+        div
+            [ class "alert alert-info alert-dismissible mt-3 feedback-message"
+            , attribute "data-testid" "feedback-message"
+            ]
             [ text "Tried this app? We'd love to "
             , a
                 [ href "https://cryptpad.ngi.nixos.org/form/#/2/form/view/3X1lzb3+XxsLUq-TygwGn-R3aHcvwuNo3L7Ya8Z1VWo/"
                 , target "_blank"
                 , rel "noopener"
+                , class "alert-link"
                 ]
                 [ text "know how it went" ]
             , text "."
@@ -111,6 +160,19 @@ viewPageAppFeedback model =
             ]
 
 
+getAppDescription : PageApp -> String
+getAppDescription pageApp =
+    let
+        app =
+            pageApp.pageApp_app
+    in
+    if String.isEmpty app.app_longDescription then
+        app.app_description
+
+    else
+        app.app_longDescription
+
+
 viewPageAppDescription : Model -> PageApp -> Html Update
 viewPageAppDescription model pageApp =
     div []
@@ -118,7 +180,12 @@ viewPageAppDescription model pageApp =
             [ class "text-body-secondary"
             , attribute "data-testid" "app-description"
             ]
-            [ text pageApp.pageApp_app.app_description ]
+            [ div [ class "text-body-secondary" ]
+                [ pageApp
+                    |> getAppDescription
+                    |> Markdown.render
+                ]
+            ]
         , viewPageAppUsage model pageApp
         ]
 
@@ -166,8 +233,8 @@ viewPortList ports =
 
 viewResource : ( String, AppResource ) -> Html Update
 viewResource ( rname, resource ) =
-    div []
-        [ small [ class "text-body-secondary" ] [ text rname ]
+    li []
+        [ small [] [ text rname ]
         , viewPortList resource.appResource_ports
         ]
 
@@ -177,15 +244,6 @@ viewComponent ( cname, component ) =
     li []
         [ small [] [ text cname ]
         , viewPortList component.appComponent_ports
-        , if Dict.isEmpty component.appComponent_resources then
-            text ""
-
-          else
-            div [ class "ms-2" ]
-                (component.appComponent_resources
-                    |> Dict.toList
-                    |> List.map viewResource
-                )
         ]
 
 
@@ -200,6 +258,9 @@ viewPageAppConfiguration _ pageApp =
 
         components =
             pageApp.pageApp_app.app_services.appServices_components
+
+        resources =
+            pageApp.pageApp_app.app_services.appServices_resources
     in
     div
         [ class "box-container target-highlight mb-3"
@@ -240,14 +301,23 @@ viewPageAppConfiguration _ pageApp =
                 , viewBulletList
                     (components |> Dict.toList |> List.map viewComponent)
                 ]
+        , if Dict.isEmpty resources then
+            text ""
+
+          else
+            div []
+                [ div [ class "ms-2 mb-1" ]
+                    [ small [ class "text-body-secondary" ] [ text "Resources" ] ]
+                , viewBulletList
+                    (resources |> Dict.toList |> List.map viewResource)
+                ]
         , div [ class "ms-2 mb-1" ]
             [ small [ class "text-body-secondary" ] [ text "Runtimes" ] ]
         , div [ class "ms-2 mb-3" ]
             (listAppRuntimeAvailable pageApp.pageApp_app
                 |> List.map
                     (\r ->
-                        span [ class "badge bg-primary me-1", style "font-size" "0.85em" ]
-                            [ text (showAppRuntime r |> String.toLower) ]
+                        viewRuntimeBadge r
                     )
             )
         ]
@@ -452,3 +522,79 @@ getAppIconPath name =
 defaultAppIconPath : String
 defaultAppIconPath =
     "resources/apps/app-icon.svg"
+
+
+viewPageAppIconModal : Model -> PageApp -> Html Update
+viewPageAppIconModal _ pageApp =
+    let
+        routeApp =
+            pageApp.pageApp_route
+
+        onClickRoute =
+            Route_App { routeApp | routeApp_iconShown = False }
+    in
+    if not pageApp.pageApp_route.routeApp_iconShown then
+        text ""
+
+    else
+        div []
+            [ div
+                [ class "modal show"
+                , style "display" "block"
+                , attribute "data-testid" "icon-modal-container"
+                , tabindex -1
+                , style "background-color" "rgba(0,0,0,0.5)"
+                , onClick (Update_RouteWithoutHistory onClickRoute)
+                ]
+                [ div
+                    [ class "modal-dialog modal-dialog-centered modal-lg"
+                    , stopPropagationOn "click" (Decode.succeed ( Update_NoOp, True ))
+                    ]
+                    [ div
+                        [ class "modal-content bg-transparent border-0"
+                        , style "align-items" "center"
+                        , style "justify-content" "center"
+                        ]
+                        [ div
+                            [ style "position" "relative"
+                            , style "display" "inline-block"
+                            ]
+                            [ button
+                                [ class "btn-close btn-close-white opacity-100"
+                                , attribute "type" "button"
+                                , attribute "aria-label" "Close"
+                                , onClick (Update_RouteWithoutHistory onClickRoute)
+                                , style "position" "absolute"
+                                , style "top" "-40px"
+                                , style "right" "0"
+                                ]
+                                []
+                            , (if pageApp.pageApp_app.app_hasIcon then
+                                img
+
+                               else
+                                Html.node "avatar-icon"
+                              )
+                                ([ class "rounded bg-transparent"
+                                 , style "width" "400px"
+                                 , style "height" "400px"
+                                 , style "object-fit" "contain"
+                                 , style "max-width" "90vw"
+                                 , style "max-height" "80vh"
+                                 , attribute "alt" (pageApp.pageApp_app.app_displayName ++ " icon")
+                                 , attribute "data-display-name" pageApp.pageApp_app.app_displayName
+                                 , attribute "data-app-name" pageApp.pageApp_route.routeApp_name
+                                 ]
+                                    ++ (if pageApp.pageApp_app.app_hasIcon then
+                                            [ src (getAppIconPath pageApp.pageApp_route.routeApp_name) ]
+
+                                        else
+                                            []
+                                       )
+                                )
+                                []
+                            ]
+                        ]
+                    ]
+                ]
+            ]

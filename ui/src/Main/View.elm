@@ -1,8 +1,8 @@
 module Main.View exposing (..)
 
 import Html exposing (Html, a, button, div, footer, header, img, input, li, main_, section, span, text, ul)
-import Html.Attributes exposing (attribute, class, href, id, placeholder, src, style, target, title, type_, value)
-import Html.Events exposing (onInput, preventDefaultOn)
+import Html.Attributes exposing (alt, attribute, class, href, id, placeholder, src, style, target, title, type_, value)
+import Html.Events exposing (onBlur, onFocus, onInput, preventDefaultOn)
 import Json.Decode as Decode
 import Main.Config exposing (..)
 import Main.Config.App exposing (..)
@@ -32,7 +32,7 @@ view model =
             [ class "py-3" ]
             [ div
                 [ class "d-flex align-items-center gap-2 gap-md-3" ]
-                [ viewTitle
+                [ viewTitle model.model_searchFocused
                 , div [ class "flex-grow-1" ]
                     [ viewSearchInput model ]
                 , div
@@ -89,8 +89,8 @@ view model =
         ]
 
 
-viewTitle : Html Update
-viewTitle =
+viewTitle : Bool -> Html Update
+viewTitle searchFocused =
     let
         onClickRoute =
             Route_Apps defaultRouteApps
@@ -111,7 +111,15 @@ viewTitle =
             ]
             []
         , span
-            [ class "brand-text fw-bold" ]
+            [ class "brand-text fw-bold"
+            , class
+                (if searchFocused then
+                    " d-none d-md-block"
+
+                 else
+                    ""
+                )
+            ]
             [ text "NGI Forge" ]
         ]
 
@@ -176,6 +184,8 @@ viewSearchInput model =
             , id "main-search-bar"
             , attribute "data-testid" "main-search-bar"
             , onInput (\pattern -> Update_Search pattern)
+            , onFocus (Update_SearchFocus True)
+            , onBlur (Update_SearchFocus False)
             , preventDefaultOn "keydown"
                 (decodeEscapeKey
                     |> Decode.map (\_ -> ( Update_Search "", True ))
@@ -207,58 +217,78 @@ viewThemeToggle model =
 viewPoweredBy : Model -> Html update
 viewPoweredBy model =
     div
-        [ class "text-secondary"
-        , style "display" "flex"
-        , style "flex-wrap" "wrap"
-        , style "flex-direction" "row"
-        , style "justify-content" "space-evenly"
-        , style "column-gap" "1ex"
-        , style "font-size" "0.8em"
+        [ class "text-secondary d-flex flex-column flex-md-row justify-content-center align-items-center gap-4 gap-md-5 text-center text-md-start"
+        , style "font-size" "0.85em"
         ]
-        [ span []
-            [ text "Powered by "
-            , a [ href "https://nixos.org", target "_blank" ] [ text "Nix" ]
-            , text ", "
-            , a
-                [ href "https://github.com/NixOS/nixpkgs"
-                , target "_blank"
+        [ div [ class "d-flex flex-column gap-1" ]
+            [ span [ class "d-flex align-items-center gap-2" ]
+                [ iconLightningChargeFill
+                , span []
+                    [ text "Powered by "
+                    , a [ href "https://nixos.org", target "_blank" ] [ text "Nix" ]
+                    , text ", "
+                    , a
+                        [ href "https://github.com/NixOS/nixpkgs"
+                        , target "_blank"
+                        ]
+                        [ text "Nixpkgs" ]
+                    , text ", "
+                    , a
+                        [ href "https://github.com/weyl-ai/nimi"
+                        , target "_blank"
+                        ]
+                        [ text "Nimi" ]
+                    , text " & "
+                    , a [ href "https://elm-lang.org", target "_blank" ] [ text "Elm" ]
+                    , text "."
+                    ]
                 ]
-                [ text "Nixpkgs" ]
-            , text ", "
-            , a
-                [ href "https://github.com/weyl-ai/nimi"
-                , target "_blank"
+            , span [ class "d-flex align-items-center gap-2" ]
+                [ iconPeopleFill
+                , span []
+                    [ text "Developed by "
+                    , a
+                        [ href "https://nixos.org/community/teams/ngi/"
+                        , target "_blank"
+                        ]
+                        [ text "Nix@NGI team" ]
+                    , text "."
+                    ]
                 ]
-                [ text "Nimi" ]
-            , text " and "
-            , a [ href "https://elm-lang.org", target "_blank" ] [ text "Elm" ]
-            , text "."
             ]
-        , span []
-            [ text "Developed by "
-            , a
-                [ href "https://nixos.org/community/teams/ngi/"
-                , target "_blank"
+        , div [ class "d-flex flex-column gap-1" ]
+            [ span [ class "d-flex align-items-center gap-2" ]
+                [ iconGit
+                , span []
+                    [ text "Collaborate on "
+                    , a
+                        [ href (model.model_config.config_repository |> showNixUrl)
+                        , target "_blank"
+                        ]
+                        [ text (model.model_config.config_repository |> showGithubRepoSlug) ]
+                    , text "."
+                    ]
                 ]
-                [ text "Nix@NGI team" ]
-            , text "."
+            , span [ class "d-flex align-items-center gap-2" ]
+                [ iconTagFill
+                , span []
+                    [ text "Version "
+                    , a
+                        [ href ((model.model_config.config_repository |> showNixUrl) ++ "/tree/" ++ commit)
+                        , target "_blank"
+                        ]
+                        [ text shortCommit ]
+                    , text "."
+                    ]
+                ]
             ]
-        , span []
-            [ text " Contribute or report issues at "
-            , a
-                [ href (model.model_config.config_repository |> showNixUrl)
-                , target "_blank"
+        , div [ class "d-flex align-items-center" ]
+            [ a [ href "https://offen.ngi.nixos.org/auditorium", target "_blank" ]
+                [ img
+                    [ alt "Fair web analytics Access your data"
+                    , src "https://offen.ngi.nixos.org/user-access-widget-box-en.svg"
+                    ]
+                    []
                 ]
-                [ text (model.model_config.config_repository |> showGithubRepoSlug) ]
-            , text "."
-            ]
-        , span []
-            [ text " Version "
-            , a
-                [ href ((model.model_config.config_repository |> showNixUrl) ++ "/tree/" ++ commit)
-                , target "_blank"
-                ]
-                [ text shortCommit ]
-            , text "."
             ]
         ]

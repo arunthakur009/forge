@@ -22,6 +22,7 @@ let
     entry = [ "src/Main.elm" ];
     output = "js/Elm.js";
     doMinification = true;
+    useTerser = true;
     enableOptimizations = true;
   };
 
@@ -78,8 +79,6 @@ symlinkJoin {
       mkdir -p "resources/apps/$app"
       if [ -f "${appIcons}/$app/icon.svg" ]; then
         cp "${appIcons}/$app/icon.svg" "resources/apps/$app/icon.svg"
-      else
-        cp ${defaultIcon} "resources/apps/$app/icon.svg"
       fi
 
       # Create SPA routing for this app (github pages workaround)

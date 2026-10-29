@@ -6,19 +6,19 @@
 
 {
   pkgs.pmtiles-viewer = {
-    version = "0-unstable-2026-05-26";
+    version = "0-unstable-2026-09-16";
     description = "Web viewer for PMTiles archives.";
     homePage = "https://protomaps.com/docs/pmtiles/";
     license = lib.licenses.bsd3;
 
     source = {
-      git = "github:protomaps/PMTiles/8b8ddea4dbff1b0104cf2bebf2f7ff35c91b41d5";
-      hash = "sha256-QEcS+HNizUvXP/5oOzJFeOcKfgeRHHkFhGQjb01HQWI=";
+      git = "github:protomaps/PMTiles/aec8fa1341222fdddb3318e9ffa8e18e19b312f7";
+      hash = "sha256-75hCWdmN94er7ZcdO3SKmGPjKoDPZKdvJugvKo43uVA=";
     };
 
     build.npmPackageBuilder = {
       enable = true;
-      npmDepsHash = "sha256-RgzbzEzZtHrLwC+BSYwnh54ylgqfqfqO44BkCYpVnxs=";
+      npmDepsHash = "sha256-JLHIlQKGrNXHyRT/VhQznF8elLl4xAa1XTSfLFfQrLU=";
     };
 
     build.extraAttrs = {

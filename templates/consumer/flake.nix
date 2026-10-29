@@ -1,5 +1,5 @@
 {
-  description = "NGI Forge";
+  description = "NGI Forge consumer";
 
   nixConfig = {
     extra-substituters = [ "https://ngi-forge.cachix.org" ];
@@ -13,15 +13,17 @@
   };
 
   outputs =
-    inputs:
+    inputs@{ self, ... }:
     inputs.ngi-forge.inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "x86_64-linux" ];
       imports = [ inputs.ngi-forge.flakeModules.default ];
 
-      debug = true;
+      # Uncomment this to enable debug attributes of this flake.
+      # https://flake.parts/options/flake-parts.html?highlight=debug#opt-debug
+      # debug = true;
 
       perSystem =
-        { system, pkgs, ... }:
+        { config, pkgs, ... }:
         {
           # nix fmt
           formatter = pkgs.nixfmt-tree;
@@ -29,11 +31,28 @@
           forge = {
             # NOTE: update the repository url to your forge. e.g. "github:username/forge-repo"
             repositoryUrl = "github:ngi-nix/forge";
-            maintainerLists = [
-              inputs.ngi-forge.maintainerList
-            ];
             imports = [ (inputs.ngi-forge.inputs.import-tree ./recipes) ];
+            apps.himalaya.enable = true;
+            apps.offen.enable = true;
+            pkgs.himalaya.enable = true;
           };
         };
+
+      # NixOS system configuration
+      flake.nixosConfigurations.offen = inputs.ngi-forge.inputs.nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          # Boot configuration
+          {
+            fileSystems."/" = {
+              device = "/dev/disk/by-label/nixos";
+              fsType = "ext4";
+            };
+            boot.loader.grub.devices = [ "/dev/sda" ];
+          }
+          # Application module. See: recipes/apps/offen/recipe.nix
+          self.packages.x86_64-linux.apps.offen.nixosModules.default
+        ];
+      };
     };
 }
